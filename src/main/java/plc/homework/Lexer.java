@@ -1,6 +1,8 @@
 package plc.homework;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * The lexer works through three main functions:
@@ -39,11 +41,26 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
-        throw new UnsupportedOperationException(); //TODO
+
+        Pattern IdentifierPattern = Pattern.compile("@|[A-Za-z][A-Za-z0-9_-]*");
+
+        int index = 0;
+        Token lexedToken = lexIdentifier(test, index);
+
+
+
+
+
+
+
+
+        return lexedToken;
+         //TODO
     }
 
-    public Token lexIdentifier() {
-        throw new UnsupportedOperationException(); //TODO
+    public Token lexIdentifier(String input, int index) {
+        return new Token(Token.Type.IDENTIFIER, input, index);
+       //TODO
     }
 
     public Token lexNumber() {
@@ -73,11 +90,12 @@ public final class Lexer {
      */
     public boolean peek(String... patterns) {
         for (int i =0; i < patterns.length; i++){
-            //if(!chars.has(i);)
+            if(!chars.has(i) || !String.valueOf(chars.get(i)).matches(patterns[i])){
+                return false;
+            }
         }
 
-
-        throw new UnsupportedOperationException(); //TODO (in Lecture)
+        return true;
     }
 
     /**
@@ -86,7 +104,13 @@ public final class Lexer {
      * true. Hint - it's easiest to have this method simply call peek.
      */
     public boolean match(String... patterns) {
-        throw new UnsupportedOperationException(); //TODO (in Lecture)
+        boolean peek = peek(patterns);
+        if(peek){
+            for (int i = 0; i < patterns.length; i++){
+                chars.advance();
+            }
+        }
+        return peek;
     }
 
     /**
