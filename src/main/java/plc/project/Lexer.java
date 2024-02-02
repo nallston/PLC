@@ -22,7 +22,7 @@ public final class Lexer {
 
     public Lexer(String input) {
         chars = new CharStream(input);
-        tokenendindex = 0;
+
     }
 
 
@@ -58,14 +58,12 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
-        System.out.println("help");
+
 
         Token returnToken;
         if (this.peek("@|[A-Za-z]")) {
-            System.out.println("Identifier");
             returnToken = lexIdentifier();
         } else if (this.peek("0|-|[1-9]")) {
-            System.out.println("Number");
             returnToken = lexNumber();
         } else if (this.peek("@|[A-Za-z]")) {
 
@@ -76,7 +74,6 @@ public final class Lexer {
         //Operater peek
         //"!|=|&|\\||\\."
         else {
-            System.out.println("Operartor");
             returnToken = lexOperator();
         }
 
@@ -121,7 +118,6 @@ public final class Lexer {
                 throw new ParseException(this.chars.input, this.chars.index);
             }
         }
-        System.out.println(this.chars.get(0));
         boolean isnumber = true;
         while(this.chars.has(0) && isnumber){
             if(this.peek("\\.")){
@@ -131,7 +127,6 @@ public final class Lexer {
                 if(!this.chars.has(0)){
                     throw new ParseException(this.chars.input, this.chars.index);
                 }
-
             }
             if(this.peek("[0-9]")){
                 this.match("[0-9]");
@@ -139,9 +134,6 @@ public final class Lexer {
             else {
                 isnumber = false;
             }
-
-
-
         }
         if (Decimal){
             return chars.emit(Token.Type.DECIMAL);
@@ -161,10 +153,7 @@ public final class Lexer {
     }
 
     public void lexEscape() {
-        System.out.println("call");
         if(this.peek(" |\\\b|\\\t|\\\r|\\\n|\\\\")){
-            System.out.println("whitespace");
-            this.tokenendindex++;
             chars.advance();
             chars.skip();
         }
@@ -200,7 +189,6 @@ public final class Lexer {
             }
         }
         else {
-            System.out.println("here");
             chars.advance();
         }
 
@@ -210,8 +198,6 @@ public final class Lexer {
 
     public Boolean escape(){
         String Escapes = " |\\\b|\\\t|\\\r|\\\n|\\\\";
-
-        System.out.println(Escapes);
         return this.peek(Escapes);
     }
 
@@ -242,7 +228,6 @@ public final class Lexer {
         if(peek){
             for (int i = 0; i < patterns.length; i++){
                 chars.advance();
-                tokenendindex++;
             }
         }
         return peek;
