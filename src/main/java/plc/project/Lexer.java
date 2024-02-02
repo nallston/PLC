@@ -18,7 +18,6 @@ import java.util.List;
  * The {@link #peek(String...)} and {@link #match(String...)} functions are * helpers you need to use, they will make the implementation a lot easier. */
 public final class Lexer {
     private final CharStream chars;
-    private int tokenendindex;
 
     public Lexer(String input) {
         chars = new CharStream(input);
@@ -40,9 +39,12 @@ public final class Lexer {
             // if whitespace do next loop
             // else run loop => whitespace
             //System.out.println("Lex Loop" + this.whitespaceindex);
-
+            if (this.chars.has(0)) {
+                lexEscape();
+            }
             TokenList.add(this.lexToken());
-            lexEscape();
+
+
         }
 
 
