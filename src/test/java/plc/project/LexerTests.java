@@ -88,8 +88,15 @@ public class LexerTests {
     private static Stream<Arguments> testCharacter() {
         return Stream.of(
                 Arguments.of("Alphabetic", "\'c\'", true),
+                Arguments.of("Alphabetic", "\'n\'", true),
+                Arguments.of("Alphabetic", "\'9\'", true),
+                Arguments.of("\\", "\'\\\\\'", false),
                 Arguments.of("Newline Escape", "\'\\n\'", true),
                 Arguments.of("Empty", "\'\'", false),
+                Arguments.of("extra'", "\'K\'\'", false),
+                Arguments.of("extra\\", "\'K\\\\\'", false),
+                Arguments.of("unterminated", "\'a", false),
+                Arguments.of("no starting'", "b\'", false),
                 Arguments.of("Multiple", "\'abc\'", false)
         );
     }
@@ -208,6 +215,14 @@ public class LexerTests {
                         new Token(Token.Type.OPERATOR, "=", 6),
                         new Token(Token.Type.IDENTIFIER, "bebe", 8),
                         new Token(Token.Type.OPERATOR, ";", 12)
+
+                )),
+                Arguments.of("Example 5", "LET x = \'b\';", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "LET", 0),
+                        new Token(Token.Type.IDENTIFIER, "x", 4),
+                        new Token(Token.Type.OPERATOR, "=", 6),
+                        new Token(Token.Type.CHARACTER, "\'b\'", 8),
+                        new Token(Token.Type.OPERATOR, ";", 11)
 
                 )),
                 Arguments.of("Example 2", "print(\"Hello, World!\");", Arrays.asList(

@@ -35,19 +35,11 @@ public final class Lexer {
         List<Token> TokenList = new ArrayList<>();
         lexEscape();
         while(this.chars.has(0)){
-            // peek until whitespace index is found
-            // if whitespace do next loop
-            // else run loop => whitespace
-            //System.out.println("Lex Loop" + this.whitespaceindex);
             if (this.chars.has(0)) {
                 lexEscape();
             }
             TokenList.add(this.lexToken());
-
-
         }
-
-
         return TokenList;
     }
 
@@ -60,17 +52,14 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
-
-
         Token returnToken;
         if (this.peek("@|[A-Za-z]")) {
             returnToken = lexIdentifier();
         } else if (this.peek("0|-|[1-9]")) {
             returnToken = lexNumber();
-        } else if (this.peek("@|[A-Za-z]")) {
-
+        } else if (this.peek("'")) {
             returnToken = lexCharacter();
-        } else if (this.peek("@|[A-Za-z]")) {
+        } else if (this.peek("\"")) {
             returnToken = lexString();
         }
         //Operater peek
@@ -78,10 +67,7 @@ public final class Lexer {
         else {
             returnToken = lexOperator();
         }
-
-
         return returnToken;
-        //TODO
     }
 
     public Token lexIdentifier() {
@@ -147,11 +133,49 @@ public final class Lexer {
     }
 
     public Token lexCharacter() {
-        throw new UnsupportedOperationException(); //TODO
+        this.match("'");
+
+        if (chars.has(0)){
+
+            // backslash case
+            if(this.peek("\\\\")){
+                chars.advance();
+                if(this.chars.has(0)){
+                    if(this.match("b|n|r|t|'|\"")){
+
+                    }
+                    else{
+                        throw new ParseException(this.chars.input, this.chars.index);
+                    }
+                }
+                else{
+                    throw new ParseException(this.chars.input, this.chars.index);
+                }
+            }
+            else{
+                //make sure to not match single quote
+                this.match(".");
+            }
+            if(chars.has(0)){
+                if(this.match("'")){
+                    return chars.emit((Token.Type.CHARACTER));
+                }
+                else{
+                    throw new ParseException(this.chars.input, this.chars.index);
+                }
+            }
+            else{
+                throw new ParseException(this.chars.input, this.chars.index);
+            }
+        }
+        return chars.emit(Token.Type.CHARACTER);
     }
 
     public Token lexString() {
-        throw new UnsupportedOperationException(); //TODO
+        this.match("\"");
+
+
+        return chars.emit((Token.Type.STRING));
     }
 
     public void lexEscape() {
