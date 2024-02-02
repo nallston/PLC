@@ -1,13 +1,17 @@
-package plc.homework;
+package plc.project;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import plc.project.Lexer;
+import plc.project.ParseException;
+import plc.project.Token;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class LexerTests {
@@ -22,7 +26,12 @@ public class LexerTests {
         return Stream.of(
                 Arguments.of("Alphabetic", "getName", true),
                 Arguments.of("Alphanumeric", "thelegend27", true),
+                Arguments.of("@alpha", "@getname", true),
+                Arguments.of("Multiple @", "@thelegend@", false),
+                Arguments.of("hyphen", "theleg-jk", true),
+                Arguments.of("underscore", "thelegend27", true),
                 Arguments.of("Leading Hyphen", "-five", false),
+
                 Arguments.of("Leading Digit", "1fish2fish3fishbluefish", false)
         );
     }
@@ -38,6 +47,15 @@ public class LexerTests {
                 Arguments.of("Single Digit", "1", true),
                 Arguments.of("Multiple Digits", "12345", true),
                 Arguments.of("Negative", "-1", true),
+                Arguments.of("Negative", "-5", true),
+                Arguments.of("Negative Decimal", "-1.0", false),
+                Arguments.of("Negative", "-1893", true),
+                Arguments.of("Zero", "0", true),
+                Arguments.of("Negative Zero", "-0", false),
+                Arguments.of("Negative", "-01", false),
+                Arguments.of("Negative", "-", false),
+                Arguments.of("Not a number", "hello", false),
+                Arguments.of("Negative", "--1", false),
                 Arguments.of("Leading Zero", "01", false)
         );
     }
@@ -99,9 +117,44 @@ public class LexerTests {
         return Stream.of(
                 Arguments.of("Character", "(", true),
                 Arguments.of("Comparison", "!=", true),
+                Arguments.of("Comparison", "==", true),
+                Arguments.of("equals", "=", true),
+                Arguments.of("not", "!", true),
+                Arguments.of("((", "((", false),
                 Arguments.of("Space", " ", false),
                 Arguments.of("Tab", "\t", false)
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void testEscape(String test, String input, boolean success) {
+        //this test requires our lex() method, since that's where whitespace is handled.
+        testwhite(input, success);
+    }
+
+    private static Stream<Arguments> testEscape() {
+        return Stream.of(
+                Arguments.of("Space", " ", true),
+                Arguments.of("Line terminator", "\n", true),
+                Arguments.of("Tab", "\t", true),
+
+                Arguments.of("\b", "\b", true),
+                Arguments.of("b", "b", false),
+                Arguments.of("t", "t", false),
+                Arguments.of("n", "n", false),
+                Arguments.of("\\", "\\", true),
+                Arguments.of("f", "f", false)
+        );
+    }
+
+    private static void testwhite(String input, boolean success) {
+        try {
+            Assertions.assertEquals(success, new Lexer(input).escape());
+
+        } catch (ParseException e) {
+            Assertions.assertFalse(success, e.getMessage());
+        }
     }
 
     @ParameterizedTest
@@ -112,12 +165,46 @@ public class LexerTests {
 
     private static Stream<Arguments> testExamples() {
         return Stream.of(
-                Arguments.of("Example 1", "LET x = 5;", Arrays.asList(
+                Arguments.of("Example 1", "LET", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "LET", 0)
+
+                )),
+                Arguments.of("Operator", "; ) == ;", Arrays.asList(
+                        new Token(Token.Type.OPERATOR, ";", 0),
+                        new Token(Token.Type.OPERATOR, ")", 2),
+                        new Token(Token.Type.OPERATOR, "==", 4),
+                        new Token(Token.Type.OPERATOR, ";", 7)
+
+                )),
+                Arguments.of("Example 2", "LET it be done", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "LET", 0),
+                        new Token(Token.Type.IDENTIFIER, "it", 4),
+                        new Token(Token.Type.IDENTIFIER, "be", 7),
+                        new Token(Token.Type.IDENTIFIER, "done", 10)
+
+                )),
+                Arguments.of("Example 2", "LET x 5", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "LET", 0),
+                        new Token(Token.Type.IDENTIFIER, "x", 4),
+                        new Token(Token.Type.INTEGER, "5", 6)
+
+                )),
+                Arguments.of("Example 3", "LET x 5 LET b -5", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "LET", 0),
+                        new Token(Token.Type.IDENTIFIER, "x", 4),
+                        new Token(Token.Type.INTEGER, "5", 6),
+                        new Token(Token.Type.IDENTIFIER, "LET", 8),
+                        new Token(Token.Type.IDENTIFIER, "b", 12),
+                        new Token(Token.Type.INTEGER, "-5", 14)
+
+                )),
+                Arguments.of("Example 4", "LET x = bebe;", Arrays.asList(
                         new Token(Token.Type.IDENTIFIER, "LET", 0),
                         new Token(Token.Type.IDENTIFIER, "x", 4),
                         new Token(Token.Type.OPERATOR, "=", 6),
-                        new Token(Token.Type.INTEGER, "5", 8),
-                        new Token(Token.Type.OPERATOR, ";", 9)
+                        new Token(Token.Type.IDENTIFIER, "bebe", 8),
+                        new Token(Token.Type.OPERATOR, ";", 12)
+
                 )),
                 Arguments.of("Example 2", "print(\"Hello, World!\");", Arrays.asList(
                         new Token(Token.Type.IDENTIFIER, "print", 0),

@@ -95,11 +95,17 @@ public class RegexTests {
                 Arguments.of("Multiple Elements", "['a','b','c']", true),
                 Arguments.of("ME with spaces", "['a','b', 'c']", true),
                 Arguments.of("ME with spaces or not", "['a', 'b','c', '8']", true),
-                Arguments.of("ME with many spaces", "['a', 'b', 'c', '8', '[']", false),
+                Arguments.of("ME with '", "['a', 'b', 'c', '8', '[']", true),
                 Arguments.of("ME too many spaces", "['a',  'b', 'c', '8', '[']", false),
                 Arguments.of("Missing Front Bracket", "'a','b','c']", false),
                 Arguments.of("Missing Back Bracket", "['a','b','c'", false),
                 Arguments.of("Missing Commas", "['a' 'b' 'c']", false),
+                Arguments.of("Escaped Mix", "['b','\n','c']", true),
+                Arguments.of("Escaped Mix End", "['b','a','\n']", true),
+                Arguments.of("Escaped Mix beginning", "['\n','b','c']", true),
+                Arguments.of("Escaped Mix", "['b','\t','\r','b','\u000B','c']", true),
+
+
 
                 Arguments.of("ME with space at end", "['a', 'b', 'c', '8', '['] ", false),
                 Arguments.of("ME with comma at end", "['a', 'b', 'c', '8', '[',]", false),
