@@ -122,21 +122,26 @@ public final class Lexer {
             }
         }
         System.out.println(this.chars.get(0));
-        int i =0;
-        while(this.chars.has(i) && this.peek("[0-9]")){
+        boolean isnumber = true;
+        while(this.chars.has(0) && isnumber){
             if(this.peek("\\.")){
-                this.match(".");
+                if(this.match("\\.") && !Decimal) {
+                    Decimal = true;
+                }
                 if(!this.chars.has(0)){
                     throw new ParseException(this.chars.input, this.chars.index);
                 }
-                Decimal = true;
+
             }
             if(this.peek("[0-9]")){
                 this.match("[0-9]");
             }
-            else{
-                i++;
+            else {
+                isnumber = false;
             }
+
+
+
         }
         if (Decimal){
             return chars.emit(Token.Type.DECIMAL);
