@@ -33,12 +33,14 @@ public final class Lexer {
 
 
         List<Token> TokenList = new ArrayList<>();
-        lexEscape();
+
         while(this.chars.has(0)){
-            if (this.chars.has(0)) {
-                lexEscape();
+
+            lexEscape();
+            if(this.chars.has(0)){
+                TokenList.add(this.lexToken());
             }
-            TokenList.add(this.lexToken());
+
         }
         return TokenList;
     }
@@ -52,6 +54,7 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
+
         Token returnToken;
         if (this.peek("@|[A-Za-z]")) {
             returnToken = lexIdentifier();
@@ -99,6 +102,7 @@ public final class Lexer {
                 return chars.emit(Token.Type.INTEGER);
             }
             else if (this.chars.has(2) && Negative){
+                this.match("0");
                 this.match("\\.","[0-9]");
                 Decimal = true;
             }
@@ -109,7 +113,8 @@ public final class Lexer {
         boolean isnumber = true;
         while(this.chars.has(0) && isnumber){
             if(this.peek("\\.")){
-                if(this.match("\\.") && !Decimal) {
+                if(this.peek("\\.") && !Decimal) {
+                    this.match("\\.");
                     Decimal = true;
                 }
                 if(!this.chars.has(0)){
@@ -200,10 +205,18 @@ public final class Lexer {
     }
 
     public void lexEscape() {
-        if(this.peek(" |\\\b|\\\t|\\\r|\\\n|\\\\")){
-            chars.advance();
-            chars.skip();
+        boolean escapeloop = true;
+        while(this.chars.has(0) && escapeloop){
+            if(this.peek(" |\\\b|\\\t|\\\r|\\\n|\\\\")){
+                chars.advance();
+                chars.skip();
+            }
+            else {
+                escapeloop = false;
+            }
+
         }
+
 //        int i=0;
 //        while(!this.peek(" |\\\s|\\\t|\\\r|\\\n") && i+this.tokenendindex < this.chars.input.length()){
 //            chars.advance();

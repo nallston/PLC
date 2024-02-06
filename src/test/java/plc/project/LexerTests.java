@@ -74,6 +74,7 @@ public class LexerTests {
                 Arguments.of("Positive Decimallong", "1.0829032890", true),
                 Arguments.of("Negative Decimal000", "-0.00000", true),
                 Arguments.of("Trailing Decimal", "1.", false),
+                Arguments.of("Multiple Decimal", "1.4.7", false),
                 Arguments.of("big negative", "-8934.893429", true),
                 Arguments.of("Leading Decimal", ".5", false)
         );
@@ -223,6 +224,14 @@ public class LexerTests {
                         new Token(Token.Type.OPERATOR, "=", 6),
                         new Token(Token.Type.CHARACTER, "\'b\'", 8),
                         new Token(Token.Type.OPERATOR, ";", 11)
+
+                )),
+                Arguments.of("Example 6", "LET x   = \'b\';", Arrays.asList(
+                        new Token(Token.Type.IDENTIFIER, "LET", 0),
+                        new Token(Token.Type.IDENTIFIER, "x", 4),
+                        new Token(Token.Type.OPERATOR, "=", 8),
+                        new Token(Token.Type.CHARACTER, "\'b\'", 10),
+                        new Token(Token.Type.OPERATOR, ";", 13)
 
                 )),
                 Arguments.of("Example 2", "print(\"Hello, World!\");", Arrays.asList(
