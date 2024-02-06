@@ -141,10 +141,7 @@ public final class Lexer {
             if(this.peek("\\\\")){
                 chars.advance();
                 if(this.chars.has(0)){
-                    if(this.match("b|n|r|t|'|\"")){
-
-                    }
-                    else{
+                    if(!this.match("b|n|r|t|'|\"")){
                         throw new ParseException(this.chars.input, this.chars.index);
                     }
                 }
@@ -175,6 +172,30 @@ public final class Lexer {
         this.match("\"");
 
 
+        while(!peek("\"")){
+            if(chars.has(0)) {
+
+                if(peek("\\\\")){
+                    chars.advance();
+                    if(this.chars.has(0)){
+                        if(!this.match("b|n|r|t|'|\"")){
+                            throw new ParseException(this.chars.input, this.chars.index);
+                        }
+                    }
+                    else{
+                        throw new ParseException(this.chars.input, this.chars.index);
+                    }
+                } else {
+                    chars.advance();
+                }
+            } else {
+                throw new ParseException(this.chars.input, this.chars.index);
+            }
+
+
+        }
+
+        this.match("\"");
         return chars.emit((Token.Type.STRING));
     }
 
