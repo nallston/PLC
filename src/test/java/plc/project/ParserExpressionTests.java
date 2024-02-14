@@ -235,22 +235,42 @@ final class ParserExpressionTests {
                         ),
                         new Ast.Expression.Function("name", Arrays.asList())
                 ),
+                Arguments.of("No Closing Bracket",
+                        Arrays.asList(
+                                //name()
+                                new Token(Token.Type.IDENTIFIER, "name", 0),
+                                new Token(Token.Type.OPERATOR, "(", 4)
+                        ),
+                        null
+                ),
+                Arguments.of("One Argument",
+                        Arrays.asList(
+                                //name()
+                                new Token(Token.Type.IDENTIFIER, "name", 0),
+                                new Token(Token.Type.OPERATOR, "(", 4),
+                                new Token(Token.Type.IDENTIFIER, "arg1",6),
+                                new Token(Token.Type.OPERATOR, ")", 11)
+                        ),
+                        new Ast.Expression.Function("name", Arrays.asList(
+                                new Ast.Expression.Access(Optional.empty(), "arg1")
+                        ))
+                ),
                 Arguments.of("Multiple Arguments",
                         Arrays.asList(
                                 //name(expr1, expr2, expr3)
                                 new Token(Token.Type.IDENTIFIER, "name", 0),
                                 new Token(Token.Type.OPERATOR, "(", 4),
-                                new Token(Token.Type.IDENTIFIER, "expr1", 5),
+                                new Token(Token.Type.IDENTIFIER, "arg1", 5),
                                 new Token(Token.Type.OPERATOR, ",", 10),
-                                new Token(Token.Type.IDENTIFIER, "expr2", 12),
+                                new Token(Token.Type.IDENTIFIER, "arg2", 12),
                                 new Token(Token.Type.OPERATOR, ",", 17),
-                                new Token(Token.Type.IDENTIFIER, "expr3", 19),
+                                new Token(Token.Type.IDENTIFIER, "arg3", 19),
                                 new Token(Token.Type.OPERATOR, ")", 24)
                         ),
                         new Ast.Expression.Function("name", Arrays.asList(
-                                new Ast.Expression.Access(Optional.empty(), "expr1"),
-                                new Ast.Expression.Access(Optional.empty(), "expr2"),
-                                new Ast.Expression.Access(Optional.empty(), "expr3")
+                                new Ast.Expression.Access(Optional.empty(), "arg1"),
+                                new Ast.Expression.Access(Optional.empty(), "arg2"),
+                                new Ast.Expression.Access(Optional.empty(), "arg3")
                         ))
                 )
         );
