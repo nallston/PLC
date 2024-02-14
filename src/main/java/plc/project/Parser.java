@@ -1,7 +1,10 @@
 package plc.project;
 
+import com.sun.jdi.connect.Connector;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,6 +74,11 @@ public final class Parser {
      * next tokens start a method, aka {@code FUN}.
      */
     public Ast.Function parseFunction() throws ParseException {
+
+        //Has Identifier () 'DO' Block 'END'
+
+
+
         throw new UnsupportedOperationException(); //TODO
     }
 
@@ -294,10 +302,25 @@ public final class Parser {
             return new Ast.Expression.Group(grouped);
         } else if (match(Token.Type.IDENTIFIER)) {
             String identifier = tokens.get(-1).getLiteral();
+            // Function Call
             if (peek("(")) {
                 match("(");
-                // TODO: flesh this out
-                return new Ast.Expression.Literal(null);
+                List<Ast.Expression> arguments = new ArrayList<>();
+                if(!peek(")")){
+                    try{
+                        arguments.add(parseExpression());
+                        while (match(",")){
+                            arguments.add(parseExpression());
+                        }
+                    }
+                   catch(ParseException p) {
+                       throw new ParseException(p.getMessage(), p.getIndex());
+                   }
+                }
+                if(!match(")")){
+                    throw new ParseException("Invalid Function, missing closing bracket after", tokens.get(-1).getIndex());
+                }
+                return new Ast.Expression.Function(identifier, arguments);
 
             } else if (peek("[")) {
                 match("[");

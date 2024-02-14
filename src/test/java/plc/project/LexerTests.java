@@ -70,11 +70,13 @@ public class LexerTests {
         return Stream.of(
                 Arguments.of("Multiple Digits", "123.456", true),
                 Arguments.of("Negative Decimal", "-1.0", true),
+                Arguments.of("Negative Decimal", "-11.0.834", false),
                 Arguments.of("Negative Decimallong", "-1.0829032890", true),
                 Arguments.of("Positive Decimallong", "1.0829032890", true),
                 Arguments.of("Negative Decimal000", "-0.00000", true),
                 Arguments.of("Trailing Decimal", "1.", false),
                 Arguments.of("Multiple Decimal", "1.4.7", false),
+                Arguments.of("Multiple Decimal", "1..7", false),
                 Arguments.of("big negative", "-8934.893429", true),
                 Arguments.of("Leading Decimal", ".5", false)
         );
