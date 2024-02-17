@@ -128,7 +128,7 @@ public final class Parser {
                 throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
             }
             Ast.Statement.Expression help = new Ast.Statement.Expression(initExpr);
-            System.out.println(help.toString());
+
             return  help;
         } else {
             try{
