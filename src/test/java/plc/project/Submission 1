@@ -1,0 +1,36 @@
+arserTests (12/36):
+  Stmt (2/5):
+    Expression (1/3):
+      Variable: Unexpected ParseException (Invalid statement: semicolon missing)
+      Function: Unexpected ParseException (Invalid statement: semicolon missing)
+    Assignment (1/2):
+      Variable: Unexpected ParseException (Invalid statement: semicolon missing)
+  Expr (8/23):
+    Group (0/3):
+      Grouped Variable: Unexpected java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 3
+      Grouped Binary: Unexpected java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 5
+      Missing Closing Parenthesis: Unexpected java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 2
+    Binary (0/5):
+      Binary And: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+      Binary Equality: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+      Binary Addition: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+      Binary Multiplication: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+      Missing Operand: Expected a ParseException to be thrown, received Ast.Expression.Access{offset=Optional.empty, name='expr'}
+    Access (1/2):
+      List: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='list'}
+    Function (0/3):
+      Zero Arguments: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='name'}
+      Multiple Arguments: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='name'}
+      Trailing Comma: Expected a ParseException to be thrown, received Ast.Expression.Access{offset=Optional.empty, name='name'}
+    Priority (0/3):
+      Addition Multiplication: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+      And Or: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+      Equals Not Equals: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+  Baseline (2/5):
+    Function: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='name'}
+    Addition: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+    Statement: Unexpected ParseException (Invalid statement: semicolon missing)
+  Error (0/3):
+    Invalid Expression: Unexpected java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 1
+    Missing Closing Parenthesis: Unexpected java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 2
+    Invalid Closing Parenthesis: Unexpected java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 3

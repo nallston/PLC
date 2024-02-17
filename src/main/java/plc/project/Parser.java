@@ -2,6 +2,7 @@ package plc.project;
 
 import com.sun.jdi.connect.Connector;
 
+import javax.lang.model.type.NullType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -98,13 +99,37 @@ public final class Parser {
     public Ast.Statement parseStatement() throws ParseException {
         //TODO: (later) be able to determine what type of statement to parse
         // for now, just parse expressions
+
+
+
         Ast.Expression initExpr = parseExpression();
+
+//        if(match(";")){
+//            return new Ast.Statement.Expression(initExpr);
+//        }
+//        else if(match("=")){
+//            Ast.Expression secExpr = parseExpression();
+//            if(!match(";")){
+//                throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
+//            }
+//            return new Ast.Statement.Assignment(initExpr, secExpr);
+//        }
+//        else{
+//            throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
+//        }
+
+
+
+
+
 
         if(!peek("=")){
             if(!match(";")){
                 throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
             }
-            return new Ast.Statement.Expression(initExpr);
+            Ast.Statement.Expression help = new Ast.Statement.Expression(initExpr);
+            System.out.println(help.toString());
+            return  help;
         } else {
             try{
                 match("=");
@@ -116,7 +141,9 @@ public final class Parser {
             } catch (ParseException p){
                 throw new ParseException(p.getMessage(), p.getIndex());
             }
+
         }
+
     }
 
     /**
@@ -180,7 +207,7 @@ public final class Parser {
 
         return parseLogicalExpression();
 
-//        throw new UnsupportedOperationException(); //TODO
+
     }
 
     /**
@@ -200,6 +227,8 @@ public final class Parser {
         } catch (ParseException p) {
             throw new ParseException(p.getMessage(), p.getIndex());
         }
+
+
     }
 
     /**
@@ -296,9 +325,13 @@ public final class Parser {
             return new Ast.Expression.Literal(found);
         } else if (match("(")) {
             Ast.Expression grouped = parseExpression();
-            if (!match(")")) {
-                throw new ParseException("Invalid Grouping", tokens.get(-1).getIndex());
+            if(match("]")) {
+                throw new ParseException("Invalid closing parenthesis", tokens.get(-2).getIndex() + tokens.get(-2).getLiteral().length());
             }
+            else if (!match(")")) {
+                throw new ParseException("Expected closing parenthesis", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+
             return new Ast.Expression.Group(grouped);
         } else if (match(Token.Type.IDENTIFIER)) {
             String identifier = tokens.get(-1).getLiteral();
@@ -318,7 +351,7 @@ public final class Parser {
                    }
                 }
                 if(!match(")")){
-                    throw new ParseException("Invalid Function, missing closing bracket after", tokens.get(-1).getIndex());
+                    throw new ParseException("Invalid Function, missing closing parenthesis", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
                 return new Ast.Expression.Function(identifier, arguments);
 
@@ -330,10 +363,13 @@ public final class Parser {
                     throw new ParseException("Invalid call to list", tokens.get(-1).getIndex());
                 }
                 return new Ast.Expression.Access(Optional.of(index), identifier);
-            } else if (!match("(") && !match("[")) {
+            }
+            else if (!match("(") && !match("[")) {
 
                 return new Ast.Expression.Access(Optional.empty(), identifier);
-            }else {
+
+            }
+            else {
                 throw new ParseException("Invalid identifier call", tokens.get(-1).getIndex());
             }
            /* TODO: look for the following
@@ -341,7 +377,7 @@ public final class Parser {
                 identifier '[' expression ']'
             */
         } else {
-            throw new ParseException("Invalid Primary Expression", tokens.get(-1).getIndex());
+            throw new ParseException("Invalid Expression", tokens.get(0).getIndex());
         }
     }
 
@@ -365,7 +401,7 @@ public final class Parser {
                     return false;
                 }
             } else if (patterns[i] instanceof String) {
-                if (patterns[i] != tokens.get(i).getLiteral()) {
+                if (!patterns[i].equals(tokens.get(i).getLiteral())) {
                     return false;
                 }
             } else {
