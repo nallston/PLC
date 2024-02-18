@@ -204,7 +204,9 @@ public final class Parser {
      * Parses the {@code expression} rule.
      */
     public Ast.Expression parseExpression() throws ParseException {
-
+        if(!tokens.has(0)){
+            throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+        }
         return parseLogicalExpression();
 
 
@@ -325,11 +327,8 @@ public final class Parser {
             return new Ast.Expression.Literal(found);
         } else if (match("(")) {
             Ast.Expression grouped = parseExpression();
-            if(match("]")) {
-                throw new ParseException("Invalid closing parenthesis", tokens.get(-2).getIndex() + tokens.get(-2).getLiteral().length());
-            }
-            else if (!match(")")) {
-                throw new ParseException("Expected closing parenthesis", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            if(!match(")")) {
+                throw new ParseException("Expected ')'.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
 
             return new Ast.Expression.Group(grouped);
@@ -339,19 +338,30 @@ public final class Parser {
             if (peek("(")) {
                 match("(");
                 List<Ast.Expression> arguments = new ArrayList<>();
+
+
+                if(!tokens.has(0)){
+                    throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                }
                 if(!peek(")")){
                     try{
                         arguments.add(parseExpression());
                         while (match(",")){
+                            if(peek(")")){
+                                throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                            }
                             arguments.add(parseExpression());
                         }
                     }
+
+
                    catch(ParseException p) {
                        throw new ParseException(p.getMessage(), p.getIndex());
                    }
                 }
+
                 if(!match(")")){
-                    throw new ParseException("Invalid Function, missing closing parenthesis", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                    throw new ParseException("Expected ')'.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
                 return new Ast.Expression.Function(identifier, arguments);
 
@@ -360,7 +370,7 @@ public final class Parser {
                 System.out.println("List Access");
                 Ast.Expression index = parseExpression();
                 if (!match("]")) {
-                    throw new ParseException("Invalid call to list", tokens.get(-1).getIndex());
+                    throw new ParseException("Invalid call to list", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
                 return new Ast.Expression.Access(Optional.of(index), identifier);
             }
@@ -370,7 +380,7 @@ public final class Parser {
 
             }
             else {
-                throw new ParseException("Invalid identifier call", tokens.get(-1).getIndex());
+                throw new ParseException("Invalid identifier call", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
            /* TODO: look for the following
                 identifier ('(' (expression (',' expression)*)? ')')? |

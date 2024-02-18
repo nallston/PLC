@@ -316,7 +316,7 @@ final class ParserExpressionTests {
                                 new Token(Token.Type.OPERATOR, "(", 0),
                                 new Token(Token.Type.IDENTIFIER, "expr", 1)
                         ),
-                        new ParseException("Expected closing parenthesis", 5)
+                        new ParseException("Expected ')'.", 5)
 
                 ),
                 Arguments.of("Invalid Closing Parenthesis",
@@ -327,7 +327,7 @@ final class ParserExpressionTests {
                                 new Token(Token.Type.IDENTIFIER, "expr", 1),
                                 new Token(Token.Type.OPERATOR, "]", 5)
                         ),
-                        new ParseException("Invalid closing parenthesis", 5)
+                        new ParseException("Expected ')'.", 5)
 
                 ),
                 Arguments.of("Invalid Expression",
@@ -338,6 +338,18 @@ final class ParserExpressionTests {
                         ),
                         new ParseException("Invalid Expression", 0)
 
+                ),
+
+                Arguments.of("Trailing comma",
+                        Arrays.asList(
+                                //name(arg1)
+                                new Token(Token.Type.IDENTIFIER, "name", 0),
+                                new Token(Token.Type.OPERATOR, "(", 4),
+                                new Token(Token.Type.IDENTIFIER, "arg1",5),
+                                new Token(Token.Type.OPERATOR, ",", 9),
+                                new Token(Token.Type.OPERATOR, ")", 10)
+                        ),
+                        new ParseException("Expected expression.", 10)
                 )
         );
     }
@@ -357,7 +369,7 @@ final class ParserExpressionTests {
     private static <T extends Ast> void testParseException(List<Token> tokens, Exception exception, Function<Parser, T> function) {
         Parser parser = new Parser(tokens);
         ParseException pe = Assertions.assertThrows(ParseException.class, () -> function.apply(parser));
-        System.out.println(pe.getIndex());
+        //System.out.println(pe.getIndex());
 
         Assertions.assertEquals(exception, pe);
     }
