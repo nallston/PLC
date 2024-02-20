@@ -88,7 +88,19 @@ public final class Parser {
      * preceding token indicates the opening a block of statements.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //TODO Fix
+        try {
+            List<Ast.Statement> StatementList = new ArrayList<>();
+            while (!peek("END")) {
+                StatementList.add(parseStatement());
+            }
+            return StatementList;
+        }
+        catch(ParseException p){
+                throw new ParseException("Invalid block: ", tokens.get(-1).getIndex());
+        }
+
+
     }
 
     /**
@@ -100,48 +112,60 @@ public final class Parser {
         //TODO: (later) be able to determine what type of statement to parse
         // for now, just parse expressions
 
+        //All parse logic contained in sub functions, except for Statement.Expression
 
-
-        Ast.Expression initExpr = parseExpression();
-
-//        if(match(";")){
-//            return new Ast.Statement.Expression(initExpr);
-//        }
-//        else if(match("=")){
-//            Ast.Expression secExpr = parseExpression();
-//            if(!match(";")){
-//                throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
-//            }
-//            return new Ast.Statement.Assignment(initExpr, secExpr);
-//        }
-//        else{
-//            throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
-//        }
-
-
-
-
-
-
-        if(!peek("=")){
-            if(!match(";")){
-                throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
-            }
-            Ast.Statement.Expression help = new Ast.Statement.Expression(initExpr);
-
-            return  help;
-        } else {
+        //Let
+        if(peek("LET")){
             try{
-                match("=");
-                Ast.Expression assignExpr = parseExpression();
+               return parseDeclarationStatement();
+            }
+            catch(ParseException p){
+                throw new ParseException(p.getMessage(), p.getIndex());
+            }
+        }
+
+        //Switch
+        else if(peek("SWITCH")){
+            throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
+        }
+
+        //IF
+        else if(peek("IF")){
+            throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
+        }
+
+        //While
+        else if(peek("WHILE")){
+            throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
+        }
+
+        //Return
+        else if(peek("RETURN")){
+            throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
+        }
+
+        else {
+            Ast.Expression initExpr = parseExpression();
+            if(!peek("=")){
                 if(!match(";")){
                     throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex());
                 }
-                return new Ast.Statement.Assignment(initExpr, assignExpr);
-            } catch (ParseException p){
-                throw new ParseException(p.getMessage(), p.getIndex());
-            }
+                Ast.Statement.Expression help = new Ast.Statement.Expression(initExpr);
 
+                return  help;
+            } else {
+                try{
+                    match("=");
+                    Ast.Expression assignExpr = parseExpression();
+                    if(!match(";")){
+                        throw new ParseException("Invalid statement: semicolon missing", tokens.get(-1).getIndex()+ tokens.get(-1).getLiteral().length());
+                    }
+                    return new Ast.Statement.Assignment(initExpr, assignExpr);
+                } catch (ParseException p){
+                    throw new ParseException(p.getMessage(), p.getIndex());
+                }
+
+            }
         }
 
     }
@@ -152,7 +176,39 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        //'LET' identifier ('=' expression)? ';'
+        if(match("LET")){
+            if(match(Token.Type.IDENTIFIER)) {
+                String IdentifierString = tokens.get(-1).getLiteral();
+                //Initialization
+                if(match("=")){
+                    try{
+                        Ast.Expression Expr = parseExpression();
+                        if(match(";")){
+                            return new Ast.Statement.Declaration(IdentifierString, Optional.of(Expr));
+                        }
+                        else{
+                            throw new ParseException("Exception missing ';'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                        }
+                    }
+                    catch(ParseException p){
+                        throw new ParseException(p.getMessage(), p.getIndex());
+                    }
+                }
+                //Definition
+                else if(match(";")){
+                    return new Ast.Statement.Declaration(IdentifierString, Optional.empty());
+                }
+                else{
+                    throw new ParseException("Exception missing ';'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                }
+
+            }
+            else {
+                throw new ParseException("Exception missing identifier", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+        }
+                throw new ParseException("Invalid Declaration Call", tokens.get(-1).getIndex());
     }
 
     /**
