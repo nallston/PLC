@@ -115,6 +115,20 @@ final class ParserTests {
                         ),
                         null
                 ),
+                Arguments.of("Definition LET name: Type = expr;",
+                        Arrays.asList(
+                                //LET name;
+                                new Token(Token.Type.IDENTIFIER, "LET", 0),
+                                new Token(Token.Type.IDENTIFIER, "name", 4),
+                                new Token(Token.Type.OPERATOR, ":", 8),
+                                new Token(Token.Type.IDENTIFIER, "Type", 10),
+                                new Token(Token.Type.OPERATOR, "=", 12),
+                                new Token(Token.Type.IDENTIFIER, "expr", 14),
+                                new Token(Token.Type.IDENTIFIER, ";", 15)
+
+                        ),
+                        null
+                ),
                 Arguments.of("Initialization no ;",
                         Arrays.asList(
                                 //LET name = expr;
@@ -210,6 +224,76 @@ final class ParserTests {
                 )
         );
     }
+    @ParameterizedTest
+    @MethodSource
+    void testSwitchStatement(String test, List<Token> tokens, Ast.Statement.Switch expected) {
+        test(tokens, expected, Parser::parseStatement);
+    }
+
+    private static Stream<Arguments> testSwitchStatement() {
+        return Stream.of(
+                Arguments.of("Switch Default",
+                        Arrays.asList(
+                                //SWITCH expr DEFAULT stmt; END
+                                new Token(Token.Type.IDENTIFIER, "SWITCH", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 7),
+                                new Token(Token.Type.IDENTIFIER, "DEFAULT", 12),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 19),
+                                new Token(Token.Type.OPERATOR, ";", 23),
+                                new Token(Token.Type.IDENTIFIER, "END", 25)
+                        ),
+                        new Ast.Statement.Switch(
+                                new Ast.Expression.Access(Optional.empty(), "expr"),
+                                Arrays.asList(
+                                        new Ast.Statement.Case(Optional.empty(),
+                                        Arrays.asList(
+                                                new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt")))
+                                        )
+                                )
+                        )
+                ),
+                Arguments.of("Switch Multiple Cases",
+                        Arrays.asList(
+                                //SWITCH expr1 CASE expr2 : stmt1; DEFAULT stmt2; END
+                                new Token(Token.Type.IDENTIFIER, "SWITCH", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr1", 7),
+                                new Token(Token.Type.IDENTIFIER, "CASE", 12),
+                                new Token(Token.Type.IDENTIFIER, "expr2", 17),
+                                new Token(Token.Type.IDENTIFIER, ":", 24),
+                                new Token(Token.Type.IDENTIFIER, "stmt1", 26),
+                                new Token(Token.Type.OPERATOR, ";", 27),
+                                new Token(Token.Type.IDENTIFIER, "CASE", 29),
+                                new Token(Token.Type.IDENTIFIER, "expr3", 35),
+                                new Token(Token.Type.IDENTIFIER, ":", 43),
+                                new Token(Token.Type.IDENTIFIER, "stmt2", 45),
+                                new Token(Token.Type.OPERATOR, ";", 50),
+                                new Token(Token.Type.IDENTIFIER, "DEFAULT", 52),
+                                new Token(Token.Type.IDENTIFIER, "stmt3", 60),
+                                new Token(Token.Type.OPERATOR, ";", 66),
+                                new Token(Token.Type.IDENTIFIER, "END", 69)
+                        ),
+                        new Ast.Statement.Switch(
+                                new Ast.Expression.Access(Optional.empty(), "expr1"),
+                                Arrays.asList(
+                                        new Ast.Statement.Case(Optional.of((new Ast.Expression.Access(Optional.empty(), "expr2"))),
+                                                Arrays.asList(
+                                                        new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt1")))
+                                        ),
+                                        new Ast.Statement.Case(Optional.of((new Ast.Expression.Access(Optional.empty(), "expr3"))),
+                                                Arrays.asList(
+                                                        new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt2")))
+                                        ),
+                                        new Ast.Statement.Case(Optional.empty(),
+                                                Arrays.asList(
+                                                        new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt3")))
+                                        )
+
+
+                                )
+                        )
+                )
+        );
+    }
 
     @ParameterizedTest
     @MethodSource
@@ -233,6 +317,47 @@ final class ParserTests {
                                 new Ast.Expression.Access(Optional.empty(), "expr"),
                                 Arrays.asList(new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt")))
                         )
+                ),
+                Arguments.of("While missing END",
+                        Arrays.asList(
+                                //WHILE expr DO stmt; END
+                                new Token(Token.Type.IDENTIFIER, "WHILE", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 6),
+                                new Token(Token.Type.IDENTIFIER, "DO", 11),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 14),
+                                new Token(Token.Type.OPERATOR, ";", 18)
+                        ),
+                        null
+                ),
+                Arguments.of("While missing Do",
+                        Arrays.asList(
+                                //WHILE expr stmt; END
+                                new Token(Token.Type.IDENTIFIER, "WHILE", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 6),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 14),
+                                new Token(Token.Type.OPERATOR, ";", 18),
+                                new Token(Token.Type.IDENTIFIER, "END", 20)
+                        ),
+                        null
+                ),
+                Arguments.of("While multiple statements",
+                        Arrays.asList(
+                                //WHILE expr DO stmt1; stmt2; stmt3; END
+                                new Token(Token.Type.IDENTIFIER, "WHILE", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 6),
+                                new Token(Token.Type.IDENTIFIER, "DO", 11),
+                                new Token(Token.Type.IDENTIFIER, "stmt1", 14),
+                                new Token(Token.Type.OPERATOR, ";", 19),
+                                new Token(Token.Type.IDENTIFIER, "stmt2", 21),
+                                new Token(Token.Type.OPERATOR, ";", 26),
+                                new Token(Token.Type.IDENTIFIER, "stmt3", 28),
+                                new Token(Token.Type.OPERATOR, ";", 29),
+                                new Token(Token.Type.IDENTIFIER, "END", 31)
+                        ),
+                        new Ast.Statement.While(
+                                new Ast.Expression.Access(Optional.empty(), "expr"),
+                                Arrays.asList(new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt1")), new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt2")), new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt3")))
+                        )
                 )
         );
     }
@@ -253,6 +378,14 @@ final class ParserTests {
                                 new Token(Token.Type.OPERATOR, ";", 11)
                         ),
                         new Ast.Statement.Return(new Ast.Expression.Access(Optional.empty(), "expr"))
+                ),
+                Arguments.of("Return Statement no expression",
+                        Arrays.asList(
+                                //RETURN expr;
+                                new Token(Token.Type.IDENTIFIER, "RETURN", 0),
+                                new Token(Token.Type.OPERATOR, ";", 8)
+                        ),
+                        null
                 )
         );
     }
@@ -522,6 +655,179 @@ final class ParserTests {
         ));
         test(input, expected, Parser::parseSource);
     }
+    @ParameterizedTest
+    @MethodSource
+    void testScenarioParseException(String test, List<Token> tokens, ParseException exception) {
+        testParseException(tokens, exception, Parser::parseStatement);
+    }
+    private static Stream<Arguments> testScenarioParseException() {
+        return Stream.of(
+                Arguments.of("Missing Closing Parenthesis",
+                        Arrays.asList(
+                                //012345
+                                //(expr
+                                new Token(Token.Type.OPERATOR, "(", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 1)
+                        ),
+                        new ParseException("Expected ')'.", 5)
+
+                ),
+                Arguments.of("Invalid Closing Parenthesis",
+                        Arrays.asList(
+                                //012345
+                                //(expr
+                                new Token(Token.Type.OPERATOR, "(", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 1),
+                                new Token(Token.Type.OPERATOR, "]", 5)
+                        ),
+                        new ParseException("Expected ')'.", 5)
+
+                ),
+                Arguments.of("Invalid Expression",
+                        Arrays.asList(
+                                //012345
+                                //(expr
+                                new Token(Token.Type.OPERATOR, "?", 0)
+                        ),
+                        new ParseException("Invalid expression.", 0)
+
+                ),
+
+                Arguments.of("Trailing comma",
+                        Arrays.asList(
+                                //name(arg1)
+                                new Token(Token.Type.IDENTIFIER, "name", 0),
+                                new Token(Token.Type.OPERATOR, "(", 4),
+                                new Token(Token.Type.IDENTIFIER, "arg1",5),
+                                new Token(Token.Type.OPERATOR, ",", 9),
+                                new Token(Token.Type.OPERATOR, ")", 10)
+                        ),
+                        new ParseException("Expected expression.", 10)
+                ),
+                Arguments.of("While missing END",
+                        Arrays.asList(
+                                //WHILE expr DO stmt; END
+                                new Token(Token.Type.IDENTIFIER, "WHILE", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 6),
+                                new Token(Token.Type.IDENTIFIER, "DO", 11),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 14),
+                                new Token(Token.Type.OPERATOR, ";", 18)
+                        ),
+                        new ParseException("Expected while END.", 19)
+                ),
+                Arguments.of("Return Statement no expression",
+                        Arrays.asList(
+                                //RETURN expr;
+                                new Token(Token.Type.IDENTIFIER, "RETURN", 0),
+                                new Token(Token.Type.OPERATOR, ";", 8)
+                        ),
+                        new ParseException("Invalid expression.", 8)
+                ),
+
+                Arguments.of("Return Statement no ;",
+                        Arrays.asList(
+                                //RETURN expr;
+                                new Token(Token.Type.IDENTIFIER, "RETURN", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 8)
+                        ),
+                        new ParseException("Expected ;.", 12)
+                ),
+                Arguments.of("If no DO",
+                        Arrays.asList(
+                                //IF expr DO stmt; END
+                                new Token(Token.Type.IDENTIFIER, "IF", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 3),
+
+                                new Token(Token.Type.IDENTIFIER, "stmt", 11),
+                                new Token(Token.Type.OPERATOR, ";", 15),
+                                new Token(Token.Type.IDENTIFIER, "END", 17)
+                        ),
+                        new ParseException("Expected if DO.", 7)
+                ),
+                Arguments.of("If no END",
+                        Arrays.asList(
+                                //IF expr DO stmt; END
+                                new Token(Token.Type.IDENTIFIER, "IF", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 3),
+                                new Token(Token.Type.IDENTIFIER, "DO", 8),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 11),
+                                new Token(Token.Type.OPERATOR, ";", 15)
+
+                        ),
+                        new ParseException("Expected if END.", 16)
+                ),
+                Arguments.of("Else",
+                        Arrays.asList(
+                                //IF expr DO stmt1; ELSE stmt2; END
+                                new Token(Token.Type.IDENTIFIER, "IF", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 3),
+                                new Token(Token.Type.IDENTIFIER, "DO", 8),
+                                new Token(Token.Type.IDENTIFIER, "stmt1", 11),
+                                new Token(Token.Type.OPERATOR, ";", 16),
+                                new Token(Token.Type.IDENTIFIER, "ELSE", 18),
+                                new Token(Token.Type.IDENTIFIER, "stmt2", 23),
+                                new Token(Token.Type.OPERATOR, ";", 28)
+
+                        ),
+                        new ParseException("Expected if else END.", 29)
+                ),
+                Arguments.of("Switch no Default",
+                        Arrays.asList(
+                                //SWITCH expr DEFAULT stmt; END
+                                new Token(Token.Type.IDENTIFIER, "SWITCH", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 7),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 19),
+                                new Token(Token.Type.OPERATOR, ";", 23),
+                                new Token(Token.Type.IDENTIFIER, "END", 25)
+                        ),
+                        new ParseException("Expected DEFAULT.", 11)
+                ),
+                Arguments.of("Switch No ; in case 2",
+                        Arrays.asList(
+                                //SWITCH expr1 CASE expr2 : stmt1; DEFAULT stmt2; END
+                                new Token(Token.Type.IDENTIFIER, "SWITCH", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr1", 7),
+                                new Token(Token.Type.IDENTIFIER, "CASE", 12),
+                                new Token(Token.Type.IDENTIFIER, "expr2", 17),
+                                new Token(Token.Type.IDENTIFIER, ":", 24),
+                                new Token(Token.Type.IDENTIFIER, "stmt1", 26),
+                                new Token(Token.Type.OPERATOR, ";", 27),
+                                new Token(Token.Type.IDENTIFIER, "CASE", 29),
+                                new Token(Token.Type.IDENTIFIER, "expr3", 35),
+                                new Token(Token.Type.IDENTIFIER, ":", 43),
+                                new Token(Token.Type.IDENTIFIER, "stmt2", 45),
+
+                                new Token(Token.Type.IDENTIFIER, "DEFAULT", 52),
+                                new Token(Token.Type.IDENTIFIER, "stmt3", 60),
+                                new Token(Token.Type.OPERATOR, ";", 66),
+                                new Token(Token.Type.IDENTIFIER, "END", 69)
+                        ),
+                        new ParseException("Invalid statement: semicolon missing Invalid Block.", 45)
+                ),
+                Arguments.of("Switch No : in case 1",
+                        Arrays.asList(
+                                //SWITCH expr1 CASE expr2 : stmt1; DEFAULT stmt2; END
+                                new Token(Token.Type.IDENTIFIER, "SWITCH", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr1", 7),
+                                new Token(Token.Type.IDENTIFIER, "CASE", 12),
+                                new Token(Token.Type.IDENTIFIER, "expr2", 17),
+
+                                new Token(Token.Type.IDENTIFIER, "stmt1", 26),
+                                new Token(Token.Type.OPERATOR, ";", 27),
+                                new Token(Token.Type.IDENTIFIER, "CASE", 29),
+                                new Token(Token.Type.IDENTIFIER, "expr3", 35),
+                                new Token(Token.Type.IDENTIFIER, ":", 43),
+                                new Token(Token.Type.IDENTIFIER, "stmt2", 45),
+                                new Token(Token.Type.OPERATOR, ";", 50),
+                                new Token(Token.Type.IDENTIFIER, "DEFAULT", 52),
+                                new Token(Token.Type.IDENTIFIER, "stmt3", 60),
+                                new Token(Token.Type.OPERATOR, ";", 66),
+                                new Token(Token.Type.IDENTIFIER, "END", 69)
+                        ),
+                        new ParseException("Expected case :.", 22)
+                )
+        );
+    }
 
     /**
      * Standard test function. If expected is null, a ParseException is expected
@@ -534,6 +840,12 @@ final class ParserTests {
         } else {
             Assertions.assertThrows(ParseException.class, () -> function.apply(parser));
         }
+    }
+    private static <T extends Ast> void testParseException(List<Token> tokens, ParseException exception, Function<Parser, T> function) {
+        Parser parser = new Parser(tokens);
+        ParseException pe = Assertions.assertThrows(ParseException.class, () -> function.apply(parser));
+        System.out.println("Expected index:" + exception.getIndex() +" Actual:" +pe.getIndex());
+        Assertions.assertEquals(exception, pe);
     }
 
 }
