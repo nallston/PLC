@@ -324,7 +324,7 @@ public final class Parser {
 
             } else if (peek("[")) {
                 match("[");
-                System.out.println("List Access");
+//                System.out.println("List Access");
                 Ast.Expression index = parseExpression();
                 if (!match("]")) {
                     throw new ParseException("Invalid call to list", tokens.get(-1).getIndex());
@@ -365,7 +365,7 @@ public final class Parser {
                     return false;
                 }
             } else if (patterns[i] instanceof String) {
-                if (patterns[i] != tokens.get(i).getLiteral()) {
+                if (!patterns[i].equals(tokens.get(i).getLiteral())) {
                     return false;
                 }
             } else {
