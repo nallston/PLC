@@ -479,7 +479,7 @@ public final class Parser {
             Ast.Expression left = parsePrimaryExpression();
 
 
-            while (match("*") || match("/")) {
+            while (match("*") || match("/") || match("^")) {
                 String operator = tokens.get(-1).getLiteral();
                 Ast.Expression right = parsePrimaryExpression();
                 left = new Ast.Expression.Binary(operator, left, right);
