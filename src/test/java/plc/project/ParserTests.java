@@ -491,6 +491,15 @@ final class ParserTests {
                                 new Ast.Expression.Access(Optional.empty(), "expr2")
                         )
                 ),
+                Arguments.of("Binary Equality",
+                        Arrays.asList(
+                                //expr1 == expr2
+                                new Token(Token.Type.IDENTIFIER, "expr1", 0),
+                                new Token(Token.Type.OPERATOR, "==", 6)
+
+                        ),
+                        null
+                ),
                 Arguments.of("Binary Addition",
                         Arrays.asList(
                                 //expr1 + expr2
@@ -780,7 +789,7 @@ final class ParserTests {
                                 new Token(Token.Type.OPERATOR, ";", 23),
                                 new Token(Token.Type.IDENTIFIER, "END", 25)
                         ),
-                        new ParseException("Expected DEFAULT.", 11)
+                        new ParseException("Expected switch DEFAULT.", 11)
                 ),
                 Arguments.of("Switch No ; in case 2",
                         Arrays.asList(

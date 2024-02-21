@@ -295,18 +295,11 @@ public final class Parser {
             try{
                 Ast.Expression Condition = parseExpression();
                 List<Ast.Statement.Case> Cases = new ArrayList<>();
-                while(match("CASE")){
-                    Ast.Expression CaseValue = parseExpression();
-                    if(match(":")){
-                        Cases.add(new Ast.Statement.Case(Optional.of(CaseValue), parseBlock()));
-                    }
-                    else{
-                        throw new ParseException("Expected case :.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
-                    }
-
+                while(peek("CASE")){
+                    Cases.add(parseCaseStatement());
                 }
-                if(match("DEFAULT")){
-                    Cases.add(new Ast.Statement.Case(Optional.empty(),parseBlock()));
+                if(peek("DEFAULT")){
+                    Cases.add(parseCaseStatement());
                     if(match("END")){
                         return new Ast.Statement.Switch(Condition, Cases);
                     }
@@ -315,7 +308,7 @@ public final class Parser {
                     }
                 }
                 else{
-                    throw new ParseException("Expected DEFAULT.", tokens.get(-1).getIndex()+ tokens.get(-1).getLiteral().length());
+                    throw new ParseException("Expected switch DEFAULT.", tokens.get(-1).getIndex()+ tokens.get(-1).getLiteral().length());
                 }
             }
             catch(ParseException p){
@@ -333,7 +326,20 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        if(match("CASE")) {
+            Ast.Expression CaseValue = parseExpression();
+            if (match(":")) {
+                return new Ast.Statement.Case(Optional.of(CaseValue), parseBlock());
+            } else {
+                throw new ParseException("Expected case :.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+        }
+        else if(match("DEFAULT")){
+            return new Ast.Statement.Case(Optional.empty(),parseBlock());
+        }
+        else{
+            throw new ParseException("Invalid parseCaseStatement.", tokens.get(-1).getIndex()+ tokens.get(-1).getLiteral().length());
+        }
     }
 
     /**
@@ -494,93 +500,97 @@ public final class Parser {
      * not strictly necessary.
      */
     public Ast.Expression parsePrimaryExpression() throws ParseException {
+        if(tokens.has(0)) {
+            if (match("NIL")) {
+                return new Ast.Expression.Literal(null);
+            } else if (match("TRUE")) {
+                return new Ast.Expression.Literal(Boolean.TRUE);
+            } else if (match("FALSE")) {
+                return new Ast.Expression.Literal(Boolean.FALSE);
+            } else if (match(Token.Type.INTEGER)) {
+                return new Ast.Expression.Literal(new BigInteger(tokens.get(-1).getLiteral()));
+            } else if (match(Token.Type.DECIMAL)) {
+                return new Ast.Expression.Literal(new BigDecimal(tokens.get(-1).getLiteral()));
+            } else if (match(Token.Type.CHARACTER)) {
+                String found = tokens.get(-1).getLiteral();
+                return new Ast.Expression.Literal(found.charAt(1));
+            } else if (match(Token.Type.STRING)) {
+                String found = tokens.get(-1).getLiteral();
+                found = found.substring(1, found.length() - 1);
 
-        if (match("NIL")) {
-            return new Ast.Expression.Literal(null);
-        } else if (match("TRUE")) {
-            return new Ast.Expression.Literal(Boolean.TRUE);
-        } else if (match("FALSE")) {
-            return new Ast.Expression.Literal(Boolean.FALSE);
-        } else if (match(Token.Type.INTEGER)) {
-            return new Ast.Expression.Literal(new BigInteger(tokens.get(-1).getLiteral()));
-        } else if (match(Token.Type.DECIMAL)) {
-            return new Ast.Expression.Literal(new BigDecimal(tokens.get(-1).getLiteral()));
-        } else if (match(Token.Type.CHARACTER)) {
-            String found = tokens.get(-1).getLiteral();
-            return new Ast.Expression.Literal(found.charAt(1));
-        } else if (match(Token.Type.STRING)) {
-            String found = tokens.get(-1).getLiteral();
-            found = found.substring(1, found.length() - 1);
-
-            if (found.contains("\\")) {
-                // need to replace the whitespace/escape characters in the string
-                found = found.replace("\\b", "\b").replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t").replace("\\'", "'").replace("\\\"", "\"").replace("\\\\", "\\");
-            }
-            // TODO: need to implement specific whitespace properties
-            return new Ast.Expression.Literal(found);
-        } else if (match("(")) {
-            Ast.Expression grouped = parseExpression();
-            if(!match(")")) {
-                throw new ParseException("Expected ')'.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
-            }
-
-            return new Ast.Expression.Group(grouped);
-        } else if (match(Token.Type.IDENTIFIER)) {
-            String identifier = tokens.get(-1).getLiteral();
-            // Function Call
-            if (peek("(")) {
-                match("(");
-                List<Ast.Expression> arguments = new ArrayList<>();
-
-
-                if(!tokens.has(0)){
-                    throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                if (found.contains("\\")) {
+                    // need to replace the whitespace/escape characters in the string
+                    found = found.replace("\\b", "\b").replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t").replace("\\'", "'").replace("\\\"", "\"").replace("\\\\", "\\");
                 }
-                if(!peek(")")){
-                    try{
-                        arguments.add(parseExpression());
-                        while (match(",")){
-                            if(peek(")")){
-                                throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
-                            }
+                // TODO: need to implement specific whitespace properties
+                return new Ast.Expression.Literal(found);
+            } else if (match("(")) {
+                Ast.Expression grouped = parseExpression();
+                if (!match(")")) {
+                    throw new ParseException("Expected ')'.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                }
+
+                return new Ast.Expression.Group(grouped);
+            } else if (match(Token.Type.IDENTIFIER)) {
+                String identifier = tokens.get(-1).getLiteral();
+                // Function Call
+                if (peek("(")) {
+                    match("(");
+                    List<Ast.Expression> arguments = new ArrayList<>();
+
+
+                    if (!tokens.has(0)) {
+                        throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                    }
+                    if (!peek(")")) {
+                        try {
                             arguments.add(parseExpression());
+                            while (match(",")) {
+                                if (peek(")")) {
+                                    throw new ParseException("Expected expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                                }
+                                arguments.add(parseExpression());
+                            }
+                        } catch (ParseException p) {
+                            throw new ParseException(p.getMessage(), p.getIndex());
                         }
                     }
 
+                    if (!match(")")) {
+                        throw new ParseException("Expected ')'.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                    }
+                    return new Ast.Expression.Function(identifier, arguments);
 
-                   catch(ParseException p) {
-                       throw new ParseException(p.getMessage(), p.getIndex());
-                   }
+                } else if (peek("[")) {
+                    match("[");
+                    System.out.println("List Access");
+                    Ast.Expression index = parseExpression();
+                    if (!match("]")) {
+                        throw new ParseException("Invalid call to list.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                    }
+                    return new Ast.Expression.Access(Optional.of(index), identifier);
+                } else if (!match("(") && !match("[")) {
+
+                    return new Ast.Expression.Access(Optional.empty(), identifier);
+
+                } else {
+                    throw new ParseException("Invalid identifier call", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
-
-                if(!match(")")){
-                    throw new ParseException("Expected ')'.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
-                }
-                return new Ast.Expression.Function(identifier, arguments);
-
-            } else if (peek("[")) {
-                match("[");
-                System.out.println("List Access");
-                Ast.Expression index = parseExpression();
-                if (!match("]")) {
-                    throw new ParseException("Invalid call to list.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
-                }
-                return new Ast.Expression.Access(Optional.of(index), identifier);
-            }
-            else if (!match("(") && !match("[")) {
-
-                return new Ast.Expression.Access(Optional.empty(), identifier);
-
-            }
-            else {
-                throw new ParseException("Invalid identifier call", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
-            }
            /* TODO: look for the following
                 identifier ('(' (expression (',' expression)*)? ')')? |
                 identifier '[' expression ']'
             */
-        } else {
-            throw new ParseException("Invalid expression.", tokens.get(0).getIndex());
+            } else {
+                throw new ParseException("Invalid expression.", tokens.get(0).getIndex());
+            }
+        }
+        else{
+            if(tokens.has(-1)){
+                throw new ParseException("Expected Ast.Expression.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+            else{
+                throw new ParseException("Invalid TokenStream",0);
+            }
         }
     }
 
