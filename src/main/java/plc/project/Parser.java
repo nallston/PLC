@@ -33,18 +33,23 @@ public final class Parser {
     /**
      * Parses the {@code source} rule.
      */
+
     public Ast.Source parseSource() throws ParseException {
 
         try {
             List<Ast.Global> globals = new ArrayList<>();
             List<Ast.Function> functions = new ArrayList<>();
-
+            boolean functionEncountered = false;
 
             while (tokens.has(0)) {
                 if (peek("LIST") || peek("VAR") || peek("VAL")) {
+                    if (functionEncountered) {
+                        throw new ParseException("Invalid Source: Globals Cannot Come After Functions", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                    }
                     globals.add(parseGlobal());
                 } else if (peek("FUN")) {
                     functions.add(parseFunction());
+                    functionEncountered = true;
                 }
             }
             return new Ast.Source(globals, functions);
@@ -88,7 +93,7 @@ public final class Parser {
             } else {
                 name = tokens.get(-1).getLiteral();
             }
-            if(!match("=")){
+            if (!match("=")) {
                 throw new ParseException("Invalid List: Missing '='", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
             if (!match("[")) {
@@ -98,14 +103,14 @@ public final class Parser {
                 expressions.add(parseExpression());
                 if (!peek("]")) {
 
-                    while(match(",")){
-                        if(peek("]")){
+                    while (match(",")) {
+                        if (peek("]")) {
                             throw new ParseException("Invalid List: Expected Another Expression", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
 
                         }
-                        try{
+                        try {
                             expressions.add(parseExpression());
-                        } catch(ParseException p2){
+                        } catch (ParseException p2) {
                             throw new ParseException(p2.getMessage(), p2.getIndex());
                         }
                     }
@@ -234,8 +239,9 @@ public final class Parser {
 
             //'DO' Block 'END'
             if (!match("DO")) {
-                throw new ParseException("Invalid Funciton: missing 'DO' Block 'END'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                throw new ParseException("Invalid Funciton: Invalid DO", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
+
             List<Ast.Statement> statements = parseBlock();
 
 
@@ -423,6 +429,8 @@ public final class Parser {
                         }
                     }
                 } else {
+                    // TODO: fails for the test case "IF expr THEN"
+                    // Exception throws at index 7, but I think it should be at index 8
                     throw new ParseException("Expected if DO.", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
             } catch (ParseException p) {

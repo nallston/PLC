@@ -152,6 +152,38 @@ final class ParserTests {
 
     @ParameterizedTest
     @MethodSource
+    void testSourceException(String test, List<Token> tokens, ParseException exception) {
+        testParseException(tokens, exception, Parser::parseSource);
+    }
+
+    private static Stream<Arguments> testSourceException() {
+        return Stream.of(
+
+                Arguments.of("Global After Function",
+
+                        Arrays.asList(
+                                new Token(Token.Type.IDENTIFIER, "FUN", 0),
+                                new Token(Token.Type.IDENTIFIER, "name", 4),
+                                new Token(Token.Type.OPERATOR, "(", 8),
+                                new Token(Token.Type.OPERATOR, ")", 9),
+                                new Token(Token.Type.IDENTIFIER, "DO", 11),
+                                new Token(Token.Type.IDENTIFIER, "stmt", 14),
+                                new Token(Token.Type.OPERATOR, ";", 18),
+                                new Token(Token.Type.IDENTIFIER, "END", 20),
+                                new Token(Token.Type.IDENTIFIER, "VAR", 24),
+                                new Token(Token.Type.IDENTIFIER, "name", 29),
+                                new Token(Token.Type.OPERATOR, "=", 34),
+                                new Token(Token.Type.IDENTIFIER, "expr", 36),
+                                new Token(Token.Type.OPERATOR, ";", 40)
+                        ),
+                        new ParseException("Invalid Source: Globals Cannot Come After Functions", 23)
+                )
+
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
     void testExpressionStatement(String test, List<Token> tokens, Ast.Statement.Expression expected) {
         test(tokens, expected, Parser::parseStatement);
     }
@@ -829,6 +861,7 @@ final class ParserTests {
                 Arguments.of("If no DO",
                         Arrays.asList(
                                 //IF expr DO stmt; END
+                                // TODO: might need to ammend this
                                 new Token(Token.Type.IDENTIFIER, "IF", 0),
                                 new Token(Token.Type.IDENTIFIER, "expr", 3),
 
@@ -919,6 +952,23 @@ final class ParserTests {
                                 new Token(Token.Type.IDENTIFIER, "END", 69)
                         ),
                         new ParseException("Expected case :.", 22)
+                ),
+                Arguments.of("Missing DO",
+                        Arrays.asList(
+                                new Token(Token.Type.IDENTIFIER, "IF", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 3)
+
+                        ),
+                        new ParseException("Expected if DO.", 7)
+                ),
+                Arguments.of("Invalid DO",
+                        Arrays.asList(
+                                // IF expr THEN
+                                new Token(Token.Type.IDENTIFIER, "IF", 0),
+                                new Token(Token.Type.IDENTIFIER, "expr", 3),
+                                new Token(Token.Type.IDENTIFIER, "THEN", 8)
+                        ),
+                        new ParseException("Expected if DO.", 8)
                 )
         );
     }
