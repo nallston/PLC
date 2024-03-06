@@ -849,9 +849,9 @@ final class ParserTests {
                                 new Token(Token.Type.IDENTIFIER, "expr", 6),
                                 new Token(Token.Type.IDENTIFIER, "DO", 11),
                                 new Token(Token.Type.IDENTIFIER, "stmt", 14),
-                                new Token(Token.Type.OPERATOR, ";", 18)
+                                new Token(Token.Type.OPERATOR, ";", 19)
                         ),
-                        new ParseException("Expected while END.", 19)
+                        new ParseException("Expected while END.", 21)
                 ),
                 Arguments.of("Return Statement no expression",
                         Arrays.asList(
@@ -881,7 +881,7 @@ final class ParserTests {
                                 new Token(Token.Type.OPERATOR, ";", 15),
                                 new Token(Token.Type.IDENTIFIER, "END", 17)
                         ),
-                        new ParseException("Expected if DO.", 7)
+                        new ParseException("Expected if DO.", 8)
                 ),
                 Arguments.of("If no END",
                         Arrays.asList(
@@ -893,7 +893,7 @@ final class ParserTests {
                                 new Token(Token.Type.OPERATOR, ";", 15)
 
                         ),
-                        new ParseException("Expected if END.", 16)
+                        new ParseException("Expected if END.", 17)
                 ),
                 Arguments.of("Else",
                         Arrays.asList(
@@ -908,7 +908,7 @@ final class ParserTests {
                                 new Token(Token.Type.OPERATOR, ";", 28)
 
                         ),
-                        new ParseException("Expected if else END.", 29)
+                        new ParseException("Expected if else END.", 30)
                 ),
                 Arguments.of("Switch no Default",
                         Arrays.asList(
@@ -919,7 +919,7 @@ final class ParserTests {
                                 new Token(Token.Type.OPERATOR, ";", 23),
                                 new Token(Token.Type.IDENTIFIER, "END", 25)
                         ),
-                        new ParseException("Expected switch DEFAULT.", 11)
+                        new ParseException("Expected switch DEFAULT.", 12)
                 ),
                 Arguments.of("Switch No ; in case 2",
                         Arrays.asList(
@@ -971,7 +971,7 @@ final class ParserTests {
                                 new Token(Token.Type.IDENTIFIER, "expr", 3)
 
                         ),
-                        new ParseException("Expected if DO.", 7)
+                        new ParseException("Expected if DO.", 8)
                 ),
                 Arguments.of("Invalid DO",
                         Arrays.asList(
