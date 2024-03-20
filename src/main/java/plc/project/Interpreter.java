@@ -110,6 +110,9 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
+        //if(requireType())
+
+
         throw new UnsupportedOperationException(); //TODO
     }
 
