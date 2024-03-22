@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
@@ -46,12 +47,19 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Expression ast) {
+
         throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Declaration ast) {
-        throw new UnsupportedOperationException(); //TODO (in lecture)
+        if(ast.getValue().isEmpty()){
+            scope.defineVariable(ast.getName(), true, Environment.NIL);
+        }
+        else {
+            scope.defineVariable(ast.getName(), true, visit(ast.getValue().get()));
+        }
+        return Environment.NIL;
     }
 
     @Override
@@ -95,7 +103,12 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if(ast.getLiteral() == null){
+            return Environment.NIL;
+        }
+        else {
+            return Environment.create(ast.getLiteral());
+        }
     }
 
     @Override
@@ -110,7 +123,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
-        //if(requireType())
+
 
 
         throw new UnsupportedOperationException(); //TODO
@@ -140,7 +153,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     /**
      * Exception class for returning values.
      */
-    private static class Return extends RuntimeException {
+    public static class Return extends RuntimeException {
 
         private final Environment.PlcObject value;
 
