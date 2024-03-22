@@ -27,17 +27,34 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Source ast) {
 
+        for (Ast.Global global : ast.getGlobals()){
+            visit(global);
+        }
 
+        for (Ast.Function function: ast.getFunctions()){
+            visit(function);
+        }
 
+        // TODO: remove try catch later(????)
+        try{
+            scope.lookupFunction("main", 0);
+        } catch (RuntimeException e){
+            throw new RuntimeException("Evaluation Failed - visit(Ast.Source ast) => no main");
+        }
 
+        return Environment.NIL;
 
-
-        throw new UnsupportedOperationException(); //TODO
+//        throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Global ast) {
-        throw new UnsupportedOperationException(); //TODO
+        Environment.PlcObject val = Environment.NIL;
+        if(ast.getValue().isPresent()){
+            val = visit(ast.getValue().get());
+        }
+        scope.defineVariable(ast.getName(),ast.getMutable(), val);  // TODO: make sure getMutable actually does what we need it to do here
+        return Environment.NIL;
     }
 
     @Override
@@ -47,8 +64,8 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Expression ast) {
-
-        throw new UnsupportedOperationException(); //TODO
+        visit(ast.getExpression());
+        return Environment.NIL;
     }
 
     @Override
@@ -69,7 +86,24 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.If ast) {
-        throw new UnsupportedOperationException(); //TODO
+
+        if(requireType(Boolean.class, visit(ast.getCondition())) != null){
+
+            try{
+
+                scope = new Scope(scope);
+                if((Boolean) visit(ast.getCondition()).getValue()){
+                    ast.getThenStatements().forEach(this::visit);
+                } else {
+                    ast.getElseStatements().forEach(this::visit);
+                }
+
+            }
+            finally{
+                scope = scope.getParent();
+            }
+        }
+        return Environment.NIL;
     }
 
     @Override
