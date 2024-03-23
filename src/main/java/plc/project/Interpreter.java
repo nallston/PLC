@@ -108,29 +108,32 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
         Ast.Expression AccessReciever = ast.getReceiver();
 
-        if (AccessReciever instanceof Ast.Expression.Access) {
-            if (((Ast.Expression.Access) AccessReciever).getOffset().isEmpty()) {
+        if(AccessReciever instanceof Ast.Expression.Access){
+            if(((Ast.Expression.Access) AccessReciever).getOffset().isEmpty() ){
                 Environment.Variable variable = scope.lookupVariable(((Ast.Expression.Access) AccessReciever).getName());
-                if (variable.getMutable()) {
+                if(variable.getMutable()){
                     variable.setValue(visit(ast.getValue()));
-                } else {
+                }
+                else {
                     throw new RuntimeException("Variable is not mutable");
                 }
-            } else {
+            }
+            else{
                 Environment.PlcObject offsetVal = visit(((Ast.Expression.Access) AccessReciever).getOffset().get());
                 Environment.Variable variable = scope.lookupVariable(((Ast.Expression.Access) AccessReciever).getName());
-                if (variable.getMutable()) {
+                if(variable.getMutable()){
 
-                    // System.out.println(variable.toString());
+                   // System.out.println(variable.toString());
                     //System.out.println(variable.getValue().toString());
-                    // System.out.println(variable.getValue().getValue().toString());
-                    // System.out.println(offsetVal.getValue().toString());
-                    // System.out.println(((List<Object>) variable.getValue().getValue()).set(((BigInteger)offsetVal.getValue()).intValue(),visit(ast.getValue()).getValue()));
-                    // System.out.println(variable.getValue().getValue().toString());
+                   // System.out.println(variable.getValue().getValue().toString());
+                   // System.out.println(offsetVal.getValue().toString());
+                   // System.out.println(((List<Object>) variable.getValue().getValue()).set(((BigInteger)offsetVal.getValue()).intValue(),visit(ast.getValue()).getValue()));
+                   // System.out.println(variable.getValue().getValue().toString());
 
-                    ((List<Object>) variable.getValue().getValue()).set(((BigInteger) offsetVal.getValue()).intValue(), visit(ast.getValue()).getValue());
+                    ((List<Object>) variable.getValue().getValue()).set(((BigInteger)offsetVal.getValue()).intValue(),visit(ast.getValue()).getValue());
 
-                } else {
+                }
+                else {
                     throw new RuntimeException("Variable is not mutable");
                 }
 
@@ -191,11 +194,11 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Statement.Case ast) {
 //        System.out.println("Looking at case");
-        try {
+        try{
             scope = new Scope(scope);
             ast.getStatements().forEach(this::visit);
 
-        } finally {
+        } finally{
             scope = scope.getParent();
         }
         return Environment.NIL;
@@ -243,144 +246,156 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
         boolean IsInteger = false;
         boolean IsDecimal = false;
         //Boolean or and special null case
-        if (operator.equals("||")) {
-            if (LeftSide.getValue() instanceof Boolean) {
-                if (requireType(Boolean.class, LeftSide)) {
+        if(operator.equals("||")){
+            if(LeftSide.getValue() instanceof Boolean){
+                if(requireType(Boolean.class, LeftSide)) {
                     return Environment.create(true);
-                } else if (requireType(Boolean.class, visit(ast.getRight()))) {
+                }
+                else if (requireType(Boolean.class, visit(ast.getRight()))) {
                     return Environment.create(true);
-                } else {
+                }
+                else{
                     return Environment.create(false);
                 }
             }
         }
 
         Environment.PlcObject RightSide = visit(ast.getRight());
-        switch (operator) {
+        switch(operator){
             // Boolean and
             case "&&":
-                if (LeftSide.getValue() instanceof Boolean) {
-                    if (requireType(Boolean.class, LeftSide) && requireType(Boolean.class, RightSide)) {
+                if(LeftSide.getValue() instanceof Boolean){
+                    if(requireType(Boolean.class, LeftSide) && requireType(Boolean.class, RightSide)){
                         return Environment.create(true);
-                    } else {
+                    }
+                    else{
                         return Environment.create(false);
                     }
-                } else {
+                }
+                else{
                     throw new RuntimeException("Not a Boolean to && or ||");
                 }
-                //Multiplications
-            case "*", "/", "^", "-":
-                if (LeftSide.getValue() instanceof BigInteger) {
+            //Multiplications
+            case "*","/","^","-":
+                if(LeftSide.getValue() instanceof BigInteger){
                     IsInteger = true;
                 } else if (LeftSide.getValue() instanceof BigDecimal) {
                     IsDecimal = true;
                 }
-                switch (operator) {
+                switch (operator){
                     case "*":
-                        if (IsInteger) {
-                            return Environment.create(((BigInteger) LeftSide.getValue()).multiply(requireType(BigInteger.class, RightSide)));
-                        } else if (IsDecimal) {
-                            return Environment.create(((BigDecimal) LeftSide.getValue()).multiply(requireType(BigDecimal.class, RightSide)));
-                        } else {
+                        if(IsInteger){
+                            return Environment.create(((BigInteger)LeftSide.getValue()).multiply(requireType(BigInteger.class, RightSide)));
+                        }
+                        else if(IsDecimal) {
+                            return Environment.create(((BigDecimal)LeftSide.getValue()).multiply(requireType(BigDecimal.class, RightSide)));
+                        }
+                        else{
                             throw new RuntimeException("Not a BigDecimal or BigInteger to multiply");
                         }
 
                     case "/":
-                        if (IsInteger) {
-                            return Environment.create(((BigInteger) LeftSide.getValue()).divide(requireType(BigInteger.class, RightSide)));
-                        } else if (IsDecimal) {
+                        if(IsInteger){
+                            return Environment.create(((BigInteger)LeftSide.getValue()).divide(requireType(BigInteger.class, RightSide)));
+                        }
+                        else if(IsDecimal) {
                             if (RightSide.getValue() == BigDecimal.valueOf(0)) {
                                 throw new RuntimeException("Cannot divide by 0");
                             } else {
-                                return Environment.create(((BigDecimal) LeftSide.getValue()).divide(requireType(BigDecimal.class, RightSide), RoundingMode.HALF_EVEN));
+                                return Environment.create(((BigDecimal)LeftSide.getValue()).divide(requireType(BigDecimal.class, RightSide), RoundingMode.HALF_EVEN));
                             }
-                        } else {
+                        }
+                        else{
                             throw new RuntimeException("Not a BigDecimal or BigInteger to divide");
                         }
 
                     case "^":
-                        if (IsInteger) {
-                            if (RightSide.getValue() instanceof BigInteger) {
-                                int Base = ((BigInteger) LeftSide.getValue()).intValue();
+                        if(IsInteger){
+                            if(RightSide.getValue() instanceof BigInteger){
+                                int Base =  ((BigInteger) LeftSide.getValue()).intValue();
                                 int Exponent = ((BigInteger) RightSide.getValue()).intValue();
-                                return Environment.create(BigInteger.valueOf((int) Math.pow(Base, Exponent)));
-                            } else {
+                                return Environment.create(BigInteger.valueOf((int)Math.pow(Base,Exponent)));
+                            }
+                            else {
                                 throw new RuntimeException("Exponent is not a Big Integer");
                             }
-                        } else {
+                        }
+                        else{
                             throw new RuntimeException("Base is not a BigInteger");
                         }
                     case "-":
-                        if (IsInteger) {
-                            return Environment.create(((BigInteger) LeftSide.getValue()).subtract(requireType(BigInteger.class, RightSide)));
-                        } else if (IsDecimal) {
-                            return Environment.create(((BigDecimal) LeftSide.getValue()).subtract(requireType(BigDecimal.class, RightSide)));
-                        } else {
+                        if(IsInteger){
+                            return Environment.create(((BigInteger)LeftSide.getValue()).subtract(requireType(BigInteger.class, RightSide)));
+                        }
+                        else if(IsDecimal) {
+                            return Environment.create(((BigDecimal)LeftSide.getValue()).subtract(requireType(BigDecimal.class, RightSide)));
+                        }
+                        else{
                             throw new RuntimeException("Not a BigDecimal or BigInteger to subtract");
                         }
                 }
 
-                //addition
+            //addition
             case "+":
                 boolean RightString = false;
                 boolean LeftString = false;
-                if (LeftSide.getValue() instanceof String) {
+                if(LeftSide.getValue() instanceof String){
                     LeftString = true;
-                } else if (RightSide.getValue() instanceof String) {
+                }
+                else if (RightSide.getValue() instanceof String) {
                     RightString = true;
                 }
                 //concatenation
-                if (RightString || LeftString) {
-                    return Environment.create(LeftSide.getValue().toString() + RightSide.getValue().toString());
+                if(RightString || LeftString){
+                   return Environment.create(LeftSide.getValue().toString() + RightSide.getValue().toString());
                 }
 
-                if (LeftSide.getValue() instanceof BigInteger) {
+                if(LeftSide.getValue() instanceof BigInteger){
                     IsInteger = true;
                 } else if (LeftSide.getValue() instanceof BigDecimal) {
                     IsDecimal = true;
                 }
 
 
-                if (IsInteger) {
-                    return Environment.create(((BigInteger) LeftSide.getValue()).add(requireType(BigInteger.class, RightSide)));
-                } else if (IsDecimal) {
-                    return Environment.create(((BigDecimal) LeftSide.getValue()).add(requireType(BigDecimal.class, RightSide)));
-                } else {
+                if(IsInteger){
+                    return Environment.create(((BigInteger)LeftSide.getValue()).add(requireType(BigInteger.class, RightSide)));
+                }
+                else if(IsDecimal) {
+                    return Environment.create(((BigDecimal)LeftSide.getValue()).add(requireType(BigDecimal.class, RightSide)));
+                }
+                else{
                     throw new RuntimeException("Not a BigDecimal or BigInteger to add");
                 }
-                //Comparables
-            case ">", "<":
-                if (LeftSide.getValue() instanceof Comparable) {
-                    if (operator.equals(">")) {
-                        if (requireType(LeftSide.getValue().getClass(), RightSide) != null) {
-                            if (((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) > 0) {
-                                return Environment.create(true);
-                            } else if (((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) < 0) {
-                                return Environment.create(false);
-                            }
-
+            //Comparables
+            case ">","<":
+                if (LeftSide.getValue() instanceof Comparable){
+                    if(operator.equals(">")){
+                        if(((Comparable) LeftSide.getValue()).compareTo(((Comparable)RightSide.getValue())) > 0){
+                            return Environment.create(true);
                         }
-                        throw new RuntimeException("Not a Comparable to > or <");
-
-                    } else if (operator.equals("<")) {
-                        if (requireType(LeftSide.getValue().getClass(), RightSide) != null) {
-                            if (((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) > 0) {
-                                return Environment.create(false);
-                            } else if (((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) < 0) {
-                                return Environment.create(true);
-                            }
-
+                        else if (((Comparable) LeftSide.getValue()).compareTo(((Comparable)RightSide.getValue())) <= 0) {
+                            return Environment.create(false);
                         }
                         throw new RuntimeException("Not a Comparable to > or <");
                     }
-                } else {
+                    else if(operator.equals("<")){
+                        if(((Comparable) LeftSide.getValue()).compareTo(((Comparable)RightSide.getValue())) >= 0){
+                            return Environment.create(false);
+                        }
+                        else if (((Comparable) LeftSide.getValue()).compareTo(((Comparable)RightSide.getValue())) < 0) {
+                            return Environment.create(true);
+                        }
+                        throw new RuntimeException("Not a Comparable to > or <");
+                    }
+                }
+                else{
                     throw new RuntimeException("Not a Comparable to > or <");
                 }
-                //equals
+            //equals
             case "==":
                 return Environment.create(Objects.equals(LeftSide, RightSide));
             //not equals
-            case "!=":
+            case"!=":
                 return Environment.create(Objects.equals(LeftSide, RightSide));
 
         }
@@ -390,16 +405,17 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
         Environment.Variable var = scope.lookupVariable(ast.getName());
-        if (ast.getOffset().isEmpty()) {
+        if(ast.getOffset().isEmpty()){
             return scope.lookupVariable(ast.getName()).getValue();
-        } else {
+        }
+        else{
             Environment.PlcObject offsetVal = visit(ast.getOffset().get());
             List<Object> list = (List<Object>) var.getValue().getValue();
-            if (!(offsetVal.getValue() instanceof BigInteger)) {
+            if(!(offsetVal.getValue() instanceof BigInteger)){
                 throw new RuntimeException("Offset needs to be a BigInteger");
             }
-            int i = ((BigInteger) offsetVal.getValue()).intValue();
-            if (i >= list.size() || i < 0) {
+            int i = ((BigInteger)offsetVal.getValue()).intValue();
+            if(i >= list.size() || i < 0){
                 throw new RuntimeException("PlcList out of bounds");
             }
             return Environment.create(list.get(i));
@@ -425,7 +441,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Environment.PlcObject visit(Ast.Expression.PlcList ast) {
 
         List<Object> elements = new ArrayList<>();
-        for (Ast.Expression expr : ast.getValues()) {
+        for(Ast.Expression expr : ast.getValues()){
             elements.add(visit(expr).getValue());
         }
         return Environment.create(elements);
