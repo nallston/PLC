@@ -168,13 +168,40 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException(); //TODO
+        try {
+            scope = new Scope(scope);
+            ast.getCases().forEach(this::visit);
+//            for(Ast.Statement.Case c : ast.getCases()){
+//                if(c.getValue().isPresent()){
+//                    if(c.getValue().get().equals(ast.getCondition())){
+//                        visit(c);
+////                        System.out.println(c.getValue().get());
+//                    }
+//                }
+//
+//            }
+
+        } finally {
+//            System.out.println("FInally -- switch");
+            scope = scope.getParent();
+        }
+//        throw new UnsupportedOperationException(); //TODO
+        return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException(); //TODO
+//        System.out.println("Looking at case");
+        try{
+            scope = new Scope(scope);
+            ast.getStatements().forEach(this::visit);
+
+        } finally{
+            scope = scope.getParent();
+        }
+        return Environment.NIL;
     }
+
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.While ast) {
@@ -402,10 +429,18 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Function ast) {
-        throw new UnsupportedOperationException(); //TODO
 
+        Environment.Function function = scope.lookupFunction(ast.getName(), ast.getArguments().size());
+        List<Environment.PlcObject> args = new ArrayList<>();
 
+        // convert arguments to Environment.PlcObject
+        for (Ast.Expression arg : ast.getArguments()) {
+            args.add(visit(arg));
+        }
+
+        return function.invoke(args);
     }
+
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.PlcList ast) {
