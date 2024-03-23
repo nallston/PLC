@@ -33,17 +33,20 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
         }
 
         for (Ast.Function function : ast.getFunctions()) {
+            System.out.println("visiting function " + function.getName());
             visit(function);
         }
 
         // TODO: remove try catch later(????)
         try {
-            scope.lookupFunction("Main", 0);
+            scope.lookupFunction("main", 0);
         } catch (RuntimeException e) {
             throw new RuntimeException("Evaluation Failed - visit(Ast.Source ast) => no main");
         }
 
-        return Environment.NIL;
+        List<Environment.PlcObject> args = new ArrayList<>();
+
+        return scope.lookupFunction("main", 0).invoke(args);
 
     }
 
@@ -103,7 +106,43 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression AccessReciever = ast.getReceiver();
+
+        if(AccessReciever instanceof Ast.Expression.Access){
+            if(((Ast.Expression.Access) AccessReciever).getOffset().isEmpty() ){
+                Environment.Variable variable = scope.lookupVariable(((Ast.Expression.Access) AccessReciever).getName());
+                if(variable.getMutable()){
+                    variable.setValue(visit(ast.getValue()));
+                }
+                else {
+                    throw new RuntimeException("Variable is not mutable");
+                }
+            }
+            else{
+                Environment.PlcObject offsetVal = visit(((Ast.Expression.Access) AccessReciever).getOffset().get());
+                Environment.Variable variable = scope.lookupVariable(((Ast.Expression.Access) AccessReciever).getName());
+                if(variable.getMutable()){
+
+                   // System.out.println(variable.toString());
+                    //System.out.println(variable.getValue().toString());
+                   // System.out.println(variable.getValue().getValue().toString());
+                   // System.out.println(offsetVal.getValue().toString());
+                   // System.out.println(((List<Object>) variable.getValue().getValue()).set(((BigInteger)offsetVal.getValue()).intValue(),visit(ast.getValue()).getValue()));
+                   // System.out.println(variable.getValue().getValue().toString());
+
+                    ((List<Object>) variable.getValue().getValue()).set(((BigInteger)offsetVal.getValue()).intValue(),visit(ast.getValue()).getValue());
+
+                }
+                else {
+                    throw new RuntimeException("Variable is not mutable");
+                }
+
+            }
+
+        }
+
+
+        return Environment.NIL;
     }
 
     @Override
@@ -338,22 +377,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                 return Environment.create(Objects.equals(LeftSide, RightSide));
 
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        throw new UnsupportedOperationException(); //TODO
+        throw new RuntimeException();
     }
 
     @Override
