@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -171,14 +172,208 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Binary ast) {
+        // get left side PlcObject from this Binary
+        Environment.PlcObject LeftSide = visit(ast.getLeft());
+        String operator = ast.getOperator();
+        boolean IsInteger = false;
+        boolean IsDecimal = false;
+        //Boolean or and special null case
+        if(operator.equals("||")){
+            if(LeftSide.getValue() instanceof Boolean){
+                if(requireType(Boolean.class, LeftSide)) {
+                    return Environment.create(true);
+                }
+                else if (requireType(Boolean.class, visit(ast.getRight()))) {
+                    return Environment.create(true);
+                }
+                else{
+                    return Environment.create(false);
+                }
+            }
+        }
+
+        Environment.PlcObject RightSide = visit(ast.getRight());
+        switch(operator){
+            // Boolean and
+            case "&&":
+                if(LeftSide.getValue() instanceof Boolean){
+                    if(requireType(Boolean.class, LeftSide) && requireType(Boolean.class, RightSide)){
+                        return Environment.create(true);
+                    }
+                    else{
+                        return Environment.create(false);
+                    }
+                }
+                else{
+                    throw new RuntimeException("Not a Boolean to && or ||");
+                }
+            //Multiplications
+            case "*","/","^","-":
+                if(LeftSide.getValue() instanceof BigInteger){
+                    IsInteger = true;
+                } else if (LeftSide.getValue() instanceof BigDecimal) {
+                    IsDecimal = true;
+                }
+                switch (operator){
+                    case "*":
+                        if(IsInteger){
+                            return Environment.create(((BigInteger)LeftSide.getValue()).multiply(requireType(BigInteger.class, RightSide)));
+                        }
+                        else if(IsDecimal) {
+                            return Environment.create(((BigDecimal)LeftSide.getValue()).multiply(requireType(BigDecimal.class, RightSide)));
+                        }
+                        else{
+                            throw new RuntimeException("Not a BigDecimal or BigInteger to multiply");
+                        }
+
+                    case "/":
+                        if(IsInteger){
+                            return Environment.create(((BigInteger)LeftSide.getValue()).divide(requireType(BigInteger.class, RightSide)));
+                        }
+                        else if(IsDecimal) {
+                            if (RightSide.getValue() == BigDecimal.valueOf(0)) {
+                                throw new RuntimeException("Cannot divide by 0");
+                            } else {
+                                return Environment.create(((BigDecimal)LeftSide.getValue()).divide(requireType(BigDecimal.class, RightSide), RoundingMode.HALF_EVEN));
+                            }
+                        }
+                        else{
+                            throw new RuntimeException("Not a BigDecimal or BigInteger to divide");
+                        }
+
+                    case "^":
+                        if(IsInteger){
+                            if(RightSide.getValue() instanceof BigInteger){
+                                int Base =  ((BigInteger) LeftSide.getValue()).intValue();
+                                int Exponent = ((BigInteger) RightSide.getValue()).intValue();
+                                return Environment.create(BigInteger.valueOf((int)Math.pow(Base,Exponent)));
+                            }
+                            else {
+                                throw new RuntimeException("Exponent is not a Big Integer");
+                            }
+                        }
+                        else{
+                            throw new RuntimeException("Base is not a BigInteger");
+                        }
+                    case "-":
+                        if(IsInteger){
+                            return Environment.create(((BigInteger)LeftSide.getValue()).subtract(requireType(BigInteger.class, RightSide)));
+                        }
+                        else if(IsDecimal) {
+                            return Environment.create(((BigDecimal)LeftSide.getValue()).subtract(requireType(BigDecimal.class, RightSide)));
+                        }
+                        else{
+                            throw new RuntimeException("Not a BigDecimal or BigInteger to subtract");
+                        }
+                }
+
+            //addition
+            case "+":
+                boolean RightString = false;
+                boolean LeftString = false;
+                if(LeftSide.getValue() instanceof String){
+                    LeftString = true;
+                }
+                else if (RightSide.getValue() instanceof String) {
+                    RightString = true;
+                }
+                //concatenation
+                if(RightString || LeftString){
+                   return Environment.create(LeftSide.getValue().toString() + RightSide.getValue().toString());
+                }
+
+                if(LeftSide.getValue() instanceof BigInteger){
+                    IsInteger = true;
+                } else if (LeftSide.getValue() instanceof BigDecimal) {
+                    IsDecimal = true;
+                }
+
+
+                if(IsInteger){
+                    return Environment.create(((BigInteger)LeftSide.getValue()).add(requireType(BigInteger.class, RightSide)));
+                }
+                else if(IsDecimal) {
+                    return Environment.create(((BigDecimal)LeftSide.getValue()).add(requireType(BigDecimal.class, RightSide)));
+                }
+                else{
+                    throw new RuntimeException("Not a BigDecimal or BigInteger to add");
+                }
+            //Comparables
+            case ">","<":
+                if (LeftSide.getValue() instanceof Comparable){
+                    if(operator.equals(">")){
+                       if(requireType(LeftSide.getValue().getClass(), RightSide) != null){
+                           if(((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) > 0){
+                               return Environment.create(true);
+                           }
+                           else if (((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) < 0) {
+                               return Environment.create(false);
+                           }
+
+                       }
+                       throw new RuntimeException("Not a Comparable to > or <");
+
+                    }
+                    else if(operator.equals("<")){
+                        if(requireType(LeftSide.getValue().getClass(), RightSide) != null){
+                            if(((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) > 0){
+                                return Environment.create(false);
+                            }
+                            else if (((Comparable) LeftSide.getValue()).compareTo(RightSide.getValue()) < 0) {
+                                return Environment.create(true);
+                            }
+
+                        }
+                        throw new RuntimeException("Not a Comparable to > or <");
+                    }
+                }
+                else{
+                    throw new RuntimeException("Not a Comparable to > or <");
+                }
+            //equals
+            case "==":
+                return Environment.create(Objects.equals(LeftSide, RightSide));
+            //not equals
+            case"!=":
+                return Environment.create(Objects.equals(LeftSide, RightSide));
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
-
-
-        throw new UnsupportedOperationException(); //TODO
+        Environment.Variable var = scope.lookupVariable(ast.getName());
+        if(ast.getOffset().isEmpty()){
+            return scope.lookupVariable(ast.getName()).getValue();
+        }
+        else{
+            Environment.PlcObject offsetVal = visit(ast.getOffset().get());
+            List<Object> list = (List<Object>) var.getValue().getValue();
+            if(!(offsetVal.getValue() instanceof BigInteger)){
+                throw new RuntimeException("Offset needs to be a BigInteger");
+            }
+            int i = ((BigInteger)offsetVal.getValue()).intValue();
+            if(i >= list.size() || i < 0){
+                throw new RuntimeException("PlcList out of bounds");
+            }
+            return Environment.create(list.get(i));
+        }
     }
 
     @Override

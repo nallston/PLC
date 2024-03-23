@@ -321,6 +321,20 @@ final class InterpreterTests {
                         ),
                         false
                 ),
+                Arguments.of("Or",
+                        new Ast.Expression.Binary("||",
+                                new Ast.Expression.Literal(true),
+                                new Ast.Expression.Literal(false)
+                        ),
+                        true
+                ),
+                Arguments.of("Or undefined",
+                        new Ast.Expression.Binary("||",
+                                new Ast.Expression.Literal(true),
+                                new Ast.Expression.Literal(null)
+                        ),
+                        true
+                ),
                 // TRUE || undefined
                 Arguments.of("Or (Short Circuit)",
                         new Ast.Expression.Binary("||",
@@ -336,6 +350,13 @@ final class InterpreterTests {
                                 new Ast.Expression.Literal(BigInteger.TEN)
                         ),
                         true
+                ),
+                Arguments.of("Greater Than",
+                        new Ast.Expression.Binary(">",
+                                new Ast.Expression.Literal(BigInteger.ONE),
+                                new Ast.Expression.Literal(BigInteger.TEN)
+                        ),
+                        false
                 ),
                 // 1 == 10
                 Arguments.of("Equal",
@@ -361,6 +382,20 @@ final class InterpreterTests {
                         ),
                         BigInteger.valueOf(11)
                 ),
+                Arguments.of("Addition Decimal",
+                        new Ast.Expression.Binary("+",
+                                new Ast.Expression.Literal(new BigDecimal("5.2")),
+                                new Ast.Expression.Literal(new BigDecimal("3.4"))
+                        ),
+                        new BigDecimal("8.6")
+                ),
+                Arguments.of("String Add",
+                        new Ast.Expression.Binary("+",
+                                new Ast.Expression.Literal("hello"),
+                                new Ast.Expression.Literal(BigInteger.TEN)
+                        ),
+                        "hello10"
+                ),
                 // 1.2 / 3.4
                 Arguments.of("Division",
                         new Ast.Expression.Binary("/",
@@ -368,6 +403,41 @@ final class InterpreterTests {
                                 new Ast.Expression.Literal(new BigDecimal("3.4"))
                         ),
                         new BigDecimal("0.4")
+                ),
+                Arguments.of("Division 0",
+                        new Ast.Expression.Binary("/",
+                                new Ast.Expression.Literal(new BigDecimal("1.2")),
+                                new Ast.Expression.Literal(new BigDecimal("0"))
+                        ),
+                        null
+                ),
+                Arguments.of("Multiplication",
+                        new Ast.Expression.Binary("*",
+                                new Ast.Expression.Literal(BigInteger.ONE),
+                                new Ast.Expression.Literal(BigInteger.TEN)
+                        ),
+                        BigInteger.valueOf(10)
+                ),
+                Arguments.of("Multiplication fail",
+                        new Ast.Expression.Binary("*",
+                                new Ast.Expression.Literal(BigInteger.ONE),
+                                new Ast.Expression.Literal(BigDecimal.TEN)
+                        ),
+                        null
+                ),
+                Arguments.of("multiplication Decimal",
+                        new Ast.Expression.Binary("*",
+                                new Ast.Expression.Literal(new BigDecimal("1.2")),
+                                new Ast.Expression.Literal(new BigDecimal("3.4"))
+                        ),
+                        new BigDecimal("4.08")
+                ),
+                Arguments.of("Exponential",
+                        new Ast.Expression.Binary("^",
+                                new Ast.Expression.Literal(BigInteger.valueOf(2)),
+                                new Ast.Expression.Literal(BigInteger.valueOf(7))
+                        ),
+                        BigInteger.valueOf(128)
                 )
         );
     }
@@ -393,7 +463,7 @@ final class InterpreterTests {
     @Test
     void testListAccessExpression() {
         // list[1]
-        List<Object> list = Arrays.asList(BigInteger.ONE, BigInteger.valueOf(5), BigInteger.TEN);
+        List<Object> list = Arrays.asList(BigInteger.TWO, BigInteger.valueOf(5), BigInteger.TEN);
 
         Scope scope = new Scope(null);
         scope.defineVariable("list", true, Environment.create(list));
