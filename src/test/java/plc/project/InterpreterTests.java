@@ -389,6 +389,13 @@ final class InterpreterTests {
                         ),
                         new BigDecimal("8.6")
                 ),
+                Arguments.of("Addition Bad",
+                        new Ast.Expression.Binary("+",
+                                new Ast.Expression.Literal(new BigDecimal("5.2")),
+                                new Ast.Expression.Literal(BigInteger.ONE)
+                        ),
+                        null
+                ),
                 Arguments.of("String Add",
                         new Ast.Expression.Binary("+",
                                 new Ast.Expression.Literal("hello"),
