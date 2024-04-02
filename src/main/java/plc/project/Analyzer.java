@@ -71,7 +71,19 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //make sure ast.getCondition() is set up to grab type
+        visit(ast.getCondition());
+        requireAssignable(Environment.Type.BOOLEAN, ast.getCondition().getType());
+        try{
+            scope = new Scope(scope);
+            for(Ast.Statement stmt : ast.getStatements()){
+                visit(stmt);
+            }
+        }
+        finally{
+            scope = scope.getParent();
+        }
+        return null;
     }
 
     @Override
@@ -110,7 +122,23 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
-        throw new UnsupportedOperationException();  // TODO
+        if(target.getName().equals(Environment.Type.ANY.getName())) {
+        }
+        else if (target.getName().equals(Environment.Type.COMPARABLE.getName())) {
+            if(type.getName().equals(Environment.Type.INTEGER.getName()) || type.getName().equals(Environment.Type.DECIMAL.getName()) || type.getName().equals(Environment.Type.CHARACTER.getName()) || type.getName().equals(Environment.Type.STRING.getName())){
+                //Dont do anything?
+               // target.getName().equals(Environment.Type.COMPARABLE.getName())
+            }
+            else{
+                throw new RuntimeException("Expected type " + target.getName() + ", recieved " + type.getName() + ".");
+            }
+        }
+        else if(target.getName().equals(type.getName())){
+        }
+        else{
+            throw new RuntimeException("Expected type " + target.getName() + ", recieved " + type.getName() + ".");
+        }
+        // TODO
     }
 
 }
