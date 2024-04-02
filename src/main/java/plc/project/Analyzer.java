@@ -138,7 +138,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         else{
             throw new RuntimeException("Expected type " + target.getName() + ", recieved " + type.getName() + ".");
         }
-        // TODO
+        // TODO change getname to jvmname?
     }
 
 }
