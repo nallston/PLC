@@ -46,7 +46,28 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) {
-        throw new UnsupportedOperationException();  // TODO
+        Environment.Type type = null;
+        if(ast.getTypeName().isPresent() || ast.getValue().isPresent()){
+            if(ast.getTypeName().isPresent()){
+                type = Environment.getType(ast.getTypeName().get());
+            }
+            if ( ast.getValue().isPresent()) {
+                visit(ast.getValue().get());
+                if (type == null){
+                    type = ast.getValue().get().getType();
+                }
+                requireAssignable(type, ast.getValue().get().getType());
+            }
+
+            Environment.Variable variable = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+            ast.setVariable(variable);
+
+        }
+        else{
+            throw new RuntimeException("Declaration must have Type or Value");
+        }
+        return null;
+         // TODO
     }
 
     @Override
@@ -93,7 +114,15 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException();  // TODO
+        Object Literal = ast.getLiteral();
+        if(Literal == null){ ast.setType(Environment.Type.NIL); }
+        if(Literal instanceof String){ ast.setType(Environment.Type.STRING); }
+        if(Literal instanceof Character){ ast.setType(Environment.Type.CHARACTER); }
+        if(Literal instanceof Boolean){ ast.setType(Environment.Type.BOOLEAN); }
+        if(Literal instanceof BigInteger){ ast.setType(Environment.Type.INTEGER); }
+        if(Literal instanceof BigDecimal){ ast.setType(Environment.Type.DECIMAL); }
+        //TODO integer/decimal maxes
+       return null;
     }
 
     @Override
@@ -108,7 +137,16 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(ast.getOffset().isPresent()){
+            Ast.Expression expr = ast.getOffset().get();
+            visit(expr);
+            ast.setVariable(expr.getType().getGlobal(ast.getName()));
+        }
+        else{
+            ast.setVariable(scope.lookupVariable(ast.getName()));
+        }
+        return null;
+        // TODO
     }
 
     @Override
@@ -126,8 +164,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         }
         else if (target.getName().equals(Environment.Type.COMPARABLE.getName())) {
             if(type.getName().equals(Environment.Type.INTEGER.getName()) || type.getName().equals(Environment.Type.DECIMAL.getName()) || type.getName().equals(Environment.Type.CHARACTER.getName()) || type.getName().equals(Environment.Type.STRING.getName())){
-                //Dont do anything?
-               // target.getName().equals(Environment.Type.COMPARABLE.getName())
             }
             else{
                 throw new RuntimeException("Expected type " + target.getName() + ", recieved " + type.getName() + ".");
@@ -138,7 +174,5 @@ public final class Analyzer implements Ast.Visitor<Void> {
         else{
             throw new RuntimeException("Expected type " + target.getName() + ", recieved " + type.getName() + ".");
         }
-        // TODO change getname to jvmname?
     }
-
 }
