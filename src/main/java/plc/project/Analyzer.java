@@ -58,16 +58,13 @@ public final class Analyzer implements Ast.Visitor<Void> {
                 }
                 requireAssignable(type, ast.getValue().get().getType());
             }
-
             Environment.Variable variable = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
             ast.setVariable(variable);
-
         }
         else{
             throw new RuntimeException("Declaration must have Type or Value");
         }
         return null;
-         // TODO
     }
 
     @Override
@@ -114,14 +111,29 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        Object Literal = ast.getLiteral();
-        if(Literal == null){ ast.setType(Environment.Type.NIL); }
-        if(Literal instanceof String){ ast.setType(Environment.Type.STRING); }
-        if(Literal instanceof Character){ ast.setType(Environment.Type.CHARACTER); }
-        if(Literal instanceof Boolean){ ast.setType(Environment.Type.BOOLEAN); }
-        if(Literal instanceof BigInteger){ ast.setType(Environment.Type.INTEGER); }
-        if(Literal instanceof BigDecimal){ ast.setType(Environment.Type.DECIMAL); }
-        //TODO integer/decimal maxes
+        Object literal = ast.getLiteral();
+        if(literal == null){ ast.setType(Environment.Type.NIL); }
+        if(literal instanceof Character){ ast.setType(Environment.Type.CHARACTER); }
+        if(literal instanceof String){ ast.setType(Environment.Type.STRING); }
+        if(literal instanceof Boolean){ ast.setType(Environment.Type.BOOLEAN); }
+        if(literal instanceof BigInteger){
+            BigInteger number = (BigInteger) literal;
+            if(number.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) <= 0 && number.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) >= 0){
+                ast.setType(Environment.Type.INTEGER);
+            }
+            else{
+                throw new RuntimeException("Not valid BigInteger value");
+            }
+        }
+        if(literal instanceof BigDecimal){
+            BigDecimal number = (BigDecimal) literal;
+            if(number.compareTo(BigDecimal.valueOf(Double.MAX_VALUE)) <= 0 && number.compareTo(BigDecimal.valueOf(Double.MIN_VALUE)) >= 0){
+                ast.setType(Environment.Type.DECIMAL);
+            }
+            else{
+                throw new RuntimeException("Not a valid BigDecimal value");
+            }
+        }
        return null;
     }
 
