@@ -69,7 +69,14 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(ast.getReceiver() instanceof Ast.Expression.Access){
+            visit(ast.getReceiver());
+            visit(ast.getValue());
+            requireAssignable(ast.getReceiver().getType(), ast.getValue().getType());
+        } else {
+            throw new RuntimeException("Expected Ast.Expression.Access expression");
+        }
+        return null;
     }
 
     @Override
@@ -106,7 +113,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(ast.getValue().getType() != function.getFunction().getReturnType()){
+            throw new RuntimeException("Invalid return type");
+        }
+        return null;
     }
 
     @Override
@@ -139,7 +149,14 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(ast.getExpression() instanceof Ast.Expression.Group){
+            visit(ast.getExpression());
+            ast.setType(ast.getExpression().getType());
+        } else {
+            throw new RuntimeException("Expected Ast.Expression.Binary ==> [visit(Ast.Expression.Group ast)]");
+        }
+
+        return null;
     }
 
     @Override
