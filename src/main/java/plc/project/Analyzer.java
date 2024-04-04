@@ -41,7 +41,9 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Expression ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getExpression());
+        return null;
+        // TODO Might be wrong...
     }
 
     @Override
@@ -81,7 +83,66 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.If ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getCondition());
+        requireAssignable(Environment.Type.BOOLEAN, ast.getCondition().getType());
+        if(ast.getThenStatements().isEmpty()){
+            throw new RuntimeException("No then statement in if");
+        }
+        //then
+        try{
+            scope = new Scope(scope);
+            for(Ast.Statement stmt : ast.getThenStatements()){
+                visit(stmt);
+            }
+            System.out.println("true");
+        }
+        finally{
+            scope = scope.getParent();
+        }
+        //else
+        try{
+            scope = new Scope(scope);
+            for(Ast.Statement stmt : ast.getElseStatements()){
+                visit(stmt);
+            }
+            System.out.println("false");
+        }
+        finally{
+            scope = scope.getParent();
+        }
+
+
+//
+//
+//        if(ast.getCondition() instanceof Ast.Expression.Literal){
+//            if((Boolean)((Ast.Expression.Literal) ast.getCondition()).getLiteral()){
+//                try{
+//                    scope = new Scope(scope);
+//                    for(Ast.Statement stmt : ast.getThenStatements()){
+//                        visit(stmt);
+//                    }
+//                    System.out.println("true");
+//                }
+//                finally{
+//                    scope = scope.getParent();
+//                }
+//            }
+//            else{
+//                try{
+//                    scope = new Scope(scope);
+//                    for(Ast.Statement stmt : ast.getElseStatements()){
+//                        visit(stmt);
+//                    }
+//                    System.out.println("false");
+//                }
+//                finally{
+//                    scope = scope.getParent();
+//                }
+//
+//            }
+
+       // }
+        return null;  // TODO
     }
 
     @Override
@@ -155,13 +216,68 @@ public final class Analyzer implements Ast.Visitor<Void> {
         } else {
             throw new RuntimeException("Expected Ast.Expression.Binary ==> [visit(Ast.Expression.Group ast)]");
         }
-
         return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getLeft());
+        visit(ast.getRight());
+        switch(ast.getOperator()){
+            case "&&", "||":
+                // && || Boolean only
+                requireAssignable(Environment.Type.BOOLEAN, ast.getLeft().getType());
+                requireAssignable(Environment.Type.BOOLEAN, ast.getRight().getType());
+                ast.setType(Environment.Type.BOOLEAN);
+                return null;
+            case "<",">","<=",">=":
+                //< > >= <= Comparables, result is Boolean
+                requireAssignable(Environment.Type.COMPARABLE, ast.getLeft().getType());
+                requireAssignable(Environment.Type.COMPARABLE, ast.getRight().getType());
+                ast.setType(Environment.Type.BOOLEAN);
+                return null;
+            case "+":
+                // + If either side is a String result is a String, other side is any.
+                if((ast.getLeft().getType().equals(Environment.Type.STRING)) || (ast.getRight().getType().equals(Environment.Type.STRING))){
+                    requireAssignable(Environment.Type.ANY, ast.getLeft().getType());
+                    requireAssignable(Environment.Type.ANY, ast.getRight().getType());
+                    ast.setType(Environment.Type.STRING);
+                }
+                // LHS is Integer or Decimal, RHS & Result is same.
+                else if(ast.getLeft().getType().equals(Environment.Type.INTEGER)){
+                    requireAssignable(Environment.Type.INTEGER,ast.getRight().getType());
+                    ast.setType(Environment.Type.INTEGER);
+                }
+                else if(ast.getLeft().getType().equals(Environment.Type.DECIMAL)){
+                    requireAssignable(Environment.Type.DECIMAL, ast.getRight().getType());
+                    ast.setType(Environment.Type.DECIMAL);
+                }
+                else{
+                    throw new RuntimeException("Invalid use of +");
+                }
+                return null;
+            case "-","*","/":
+                //- * / LHS must be Integer or Decimal. RHS & Result are the same as Left
+                if(ast.getLeft().getType().equals(Environment.Type.INTEGER)){
+                    requireAssignable(Environment.Type.INTEGER,ast.getRight().getType());
+                    ast.setType(Environment.Type.INTEGER);
+                }
+                else if(ast.getLeft().getType().equals(Environment.Type.DECIMAL)){
+                    requireAssignable(Environment.Type.DECIMAL, ast.getRight().getType());
+                    ast.setType(Environment.Type.DECIMAL);
+                }
+                else{
+                    throw new RuntimeException("LHS must be Integer or Decimal.");
+                }
+                return null;
+            case "^":
+                //^ Both must be Integer. Result is Integer
+                requireAssignable(Environment.Type.INTEGER, ast.getLeft().getType());
+                requireAssignable(Environment.Type.INTEGER, ast.getRight().getType());
+                ast.setType(Environment.Type.INTEGER);
+                return null;
+        }
+        return null;  // TODO
     }
 
     @Override

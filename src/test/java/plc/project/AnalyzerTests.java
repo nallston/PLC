@@ -460,6 +460,28 @@ public final class AnalyzerTests {
                                 init(new Ast.Expression.Literal(BigInteger.TEN), ast -> ast.setType(Environment.Type.INTEGER))
                         ), ast -> ast.setType(Environment.Type.INTEGER))
                 ),
+                Arguments.of("Integer subtraction",
+                        // 1 + 10
+                        new Ast.Expression.Binary("-",
+                                new Ast.Expression.Literal(BigInteger.ONE),
+                                new Ast.Expression.Literal(BigInteger.TEN)
+                        ),
+                        init(new Ast.Expression.Binary("-",
+                                init(new Ast.Expression.Literal(BigInteger.ONE), ast -> ast.setType(Environment.Type.INTEGER)),
+                                init(new Ast.Expression.Literal(BigInteger.TEN), ast -> ast.setType(Environment.Type.INTEGER))
+                        ), ast -> ast.setType(Environment.Type.INTEGER))
+                ),
+                Arguments.of("Integer Exponential ^",
+                        // 1 + 10
+                        new Ast.Expression.Binary("^",
+                                new Ast.Expression.Literal(BigInteger.ONE),
+                                new Ast.Expression.Literal(BigInteger.TEN)
+                        ),
+                        init(new Ast.Expression.Binary("^",
+                                init(new Ast.Expression.Literal(BigInteger.ONE), ast -> ast.setType(Environment.Type.INTEGER)),
+                                init(new Ast.Expression.Literal(BigInteger.TEN), ast -> ast.setType(Environment.Type.INTEGER))
+                        ), ast -> ast.setType(Environment.Type.INTEGER))
+                ),
                 Arguments.of("Integer Decimal Addition",
                         // 1 + 1.0
                         new Ast.Expression.Binary("+",
