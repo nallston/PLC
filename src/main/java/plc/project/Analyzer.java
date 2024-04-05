@@ -42,14 +42,21 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Global ast) {
-//        if(ast.getValue().isPresent()){
-//
-//        }
-//        ast.setVariable(scope.defineVariable(ast.getName(), ast.getMutable(), visit(ast)));
-//        TODO: need to figure this out
-//        return null;
+        if(ast.getValue().isPresent()) {
+            Ast.Expression val = ast.getValue().get();
+            Environment.Type targetType = Environment.getType(ast.getTypeName());
 
-        throw new UnsupportedOperationException();  // TODO
+            if(val.getType() == targetType){
+                visit(ast.getValue().get());
+            } else {
+                throw new RuntimeException("Value is not assignable visit(Ast.Global ast)");
+
+            }
+        }
+        ast.setVariable(scope.defineVariable(ast.getName(), ast.getName(), Environment.getType(ast.getTypeName()), ast.getMutable(), Environment.NIL));
+        return null;
+
+//        throw new UnsupportedOperationException();  // TODO
 
     }
 
@@ -65,15 +72,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
             retType = Environment.getType(ast.getReturnTypeName().get());
         }
 
-//        ast.setFunction(scope.defineFunction(ast.getName(), parameterTypes.size(), args -> Environment.NIL));
+//        function.setFunction(scope.defineFunction(ast.getName(), ast.getName(), parameterTypes, retType, args->Environment.NIL));
+//        System.out.println(retType.getName() == null);
 
+
+        ast.setFunction(scope.defineFunction(ast.getName(), ast.getName(), parameterTypes, retType, args->Environment.NIL));
+//        System.out.println(this.function.toString());
         try{
             scope = new Scope(scope);
             for(int i = 0; i < ast.getParameters().size(); i++){
-//                scope.defineVariable();
+                scope.defineVariable(ast.getParameters().get(i), false, Environment.NIL);
             }
 
             for(Ast.Statement statement : ast.getStatements()){
+                System.out.println(statement.toString());
                 visit(statement);
             }
         } finally{
@@ -263,6 +275,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
+
         if(ast.getValue().getType() != function.getFunction().getReturnType()){
             throw new RuntimeException("Invalid return type");
         }
