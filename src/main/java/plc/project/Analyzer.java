@@ -2,6 +2,7 @@ package plc.project;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,17 +27,59 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(scope.lookupFunction("main", 0) != null && scope.lookupFunction("main", 0).getReturnType() == Environment.Type.INTEGER){
+            for(Ast.Global global : ast.getGlobals()){
+                visit(global);
+            }
+            for(Ast.Function function : ast.getFunctions()){
+                visit(function);
+            }
+        } else {
+            throw new RuntimeException("Stuff went wrong visit(Ast.Source ast)");
+        }
+        return null;
     }
 
-    @Override
+f    @Override
     public Void visit(Ast.Global ast) {
+//        if(ast.getValue().isPresent()){
+//
+//        }
+//        ast.setVariable(scope.defineVariable(ast.getName(), ast.getMutable(), visit(ast)));
+//        TODO: need to figure this out
+//        return null;
+
         throw new UnsupportedOperationException();  // TODO
+
     }
 
     @Override
     public Void visit(Ast.Function ast) {
-        throw new UnsupportedOperationException();  // TODO
+        List<Environment.Type> parameterTypes = new ArrayList<>();
+        for(int i = 0; i < ast.getParameterTypeNames().size(); i++){
+            parameterTypes.add(Environment.getType(ast.getParameterTypeNames().get(i)));
+        }
+
+        Environment.Type retType = Environment.Type.NIL;
+        if(ast.getReturnTypeName().isPresent()){
+            retType = Environment.getType(ast.getReturnTypeName().get());
+        }
+
+//        ast.setFunction(scope.defineFunction(ast.getName(), parameterTypes.size(), args -> Environment.NIL));
+
+        try{
+            scope = new Scope(scope);
+            for(int i = 0; i < ast.getParameters().size(); i++){
+//                scope.defineVariable();
+            }
+
+            for(Ast.Statement statement : ast.getStatements()){
+                visit(statement);
+            }
+        } finally{
+            scope = scope.getParent();
+        }
+        return null;
     }
 
     @Override
