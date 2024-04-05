@@ -71,25 +71,18 @@ public final class Analyzer implements Ast.Visitor<Void> {
         if(ast.getReturnTypeName().isPresent()){
             retType = Environment.getType(ast.getReturnTypeName().get());
         }
-
-//        function.setFunction(scope.defineFunction(ast.getName(), ast.getName(), parameterTypes, retType, args->Environment.NIL));
-//        System.out.println(retType.getName() == null);
-
+        scope.defineVariable("retType", "retType", retType, true, Environment.NIL);
 
         ast.setFunction(scope.defineFunction(ast.getName(), ast.getName(), parameterTypes, retType, args->Environment.NIL));
-//        System.out.println(this.function.toString());
-        try{
-            scope = new Scope(scope);
-            for(int i = 0; i < ast.getParameters().size(); i++){
-                scope.defineVariable(ast.getParameters().get(i), false, Environment.NIL);
-            }
+        for(int i = 0; i < ast.getParameters().size(); i++){
+            scope.defineVariable(ast.getParameters().get(i), false, Environment.NIL);
+        }
 
-            for(Ast.Statement statement : ast.getStatements()){
-                System.out.println(statement.toString());
-                visit(statement);
-            }
-        } finally{
+        for(Ast.Statement statement : ast.getStatements()){
+            scope = new Scope(scope);
+            visit(statement);
             scope = scope.getParent();
+
         }
         return null;
     }
@@ -275,10 +268,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
+        visit(ast.getValue());
+        Environment.Variable retType = scope.lookupVariable("retType");
+        requireAssignable(retType.getType(), ast.getValue().getType());
 
-        if(ast.getValue().getType() != function.getFunction().getReturnType()){
-            throw new RuntimeException("Invalid return type");
-        }
         return null;
     }
 
