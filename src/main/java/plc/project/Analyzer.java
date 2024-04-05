@@ -207,6 +207,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
                 }
                 else if(cases.getValue().isPresent()){
                     visit(cases);
+                    visit(cases.getValue().get());
                     requireAssignable(ast.getCondition().getType(), cases.getValue().get().getType());
                 }
                 else{
@@ -365,7 +366,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
                 ast.setType(Environment.Type.INTEGER);
                 return null;
         }
-        return null;  // TODO
+        return null;
     }
 
     @Override
@@ -379,12 +380,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
             ast.setVariable(scope.lookupVariable(ast.getName()));
         }
         return null;
-        // TODO
     }
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //find function
+        Environment.Function func = scope.lookupFunction(ast.getName(), ast.getArguments().size());
+        int i = 0;
+        for(Ast.Expression args : ast.getArguments()){
+            visit(args);
+            requireAssignable(func.getParameterTypes().get(i), args.getType());
+            i++;
+        }
+        ast.setFunction(func);
+        return null;
     }
 
     @Override
