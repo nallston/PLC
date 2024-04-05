@@ -40,7 +40,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         return null;
     }
 
-f    @Override
+    @Override
     public Void visit(Ast.Global ast) {
 //        if(ast.getValue().isPresent()){
 //
