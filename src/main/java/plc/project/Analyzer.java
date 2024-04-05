@@ -43,7 +43,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Statement.Expression ast) {
         visit(ast.getExpression());
         return null;
-        // TODO Might be wrong...
+        // TODO Might be wrong... something about having to be a Ast.Expression.Function
     }
 
     @Override
@@ -140,19 +140,64 @@ public final class Analyzer implements Ast.Visitor<Void> {
 //                }
 //
 //            }
-
        // }
         return null;  // TODO
     }
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //Case Types must match switch condition Type
+        //Last case is Default and doesn't contain a condition
+        visit(ast.getCondition());
+        try{
+            scope = new Scope(scope);
+            int i = 0;
+            for(Ast.Statement.Case cases : ast.getCases()){
+                i++;
+                if(i == ast.getCases().size()){
+                    if(cases.getValue().isEmpty()){
+                        visit(cases);
+                    }
+                    else{
+                        throw new RuntimeException("Final case must be Default with no Value");
+                    }
+                }
+                else if(cases.getValue().isPresent()){
+                    visit(cases);
+                    requireAssignable(ast.getCondition().getType(), cases.getValue().get().getType());
+                }
+                else{
+                    throw new RuntimeException("Case does not have a Value");
+                }
+            }
+        }
+        finally {
+            scope = scope.getParent();
+        }
+        return null;  // TODO Review after Function
     }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException();  // TODO
+        //TODO Review after Function.
+        //Validates Case, scope added
+        try{
+            scope = new Scope(scope);
+            if(ast.getValue().isPresent()){
+                for(Ast.Statement stmt : ast.getStatements()){
+                    visit(stmt);
+                }
+            }
+            else{
+                for(Ast.Statement stmt : ast.getStatements()){
+                    visit(stmt);
+                }
+            }
+        }
+        finally{
+            scope = scope.getParent();
+        }
+        return null;
     }
 
     @Override
