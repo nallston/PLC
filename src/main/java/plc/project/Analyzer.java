@@ -55,9 +55,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         }
         ast.setVariable(scope.defineVariable(ast.getName(), ast.getName(), Environment.getType(ast.getTypeName()), ast.getMutable(), Environment.NIL));
         return null;
-
-//        throw new UnsupportedOperationException();  // TODO
-
     }
 
     @Override
@@ -158,37 +155,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         finally{
             scope = scope.getParent();
         }
-
-
-//
-//
-//        if(ast.getCondition() instanceof Ast.Expression.Literal){
-//            if((Boolean)((Ast.Expression.Literal) ast.getCondition()).getLiteral()){
-//                try{
-//                    scope = new Scope(scope);
-//                    for(Ast.Statement stmt : ast.getThenStatements()){
-//                        visit(stmt);
-//                    }
-//                    System.out.println("true");
-//                }
-//                finally{
-//                    scope = scope.getParent();
-//                }
-//            }
-//            else{
-//                try{
-//                    scope = new Scope(scope);
-//                    for(Ast.Statement stmt : ast.getElseStatements()){
-//                        visit(stmt);
-//                    }
-//                    System.out.println("false");
-//                }
-//                finally{
-//                    scope = scope.getParent();
-//                }
-//
-//            }
-       // }
         return null;  // TODO
     }
 
@@ -271,7 +237,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
         visit(ast.getValue());
         Environment.Variable retType = scope.lookupVariable("retType");
         requireAssignable(retType.getType(), ast.getValue().getType());
-
         return null;
     }
 
