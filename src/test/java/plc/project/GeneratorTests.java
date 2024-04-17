@@ -98,6 +98,24 @@ public class GeneratorTests {
                 )
         );
     }
+//    @ParameterizedTest(name = "{0}")
+//    @MethodSource
+//    void testAssignmentStatement(String test, Ast.Statement.Assignment ast, String expected) {
+//        test(ast, expected);
+//    }
+//
+//    private static Stream<Arguments> testAssignmentStatement() {
+//        return Stream.of(
+//                Arguments.of("Assignment",
+//                        // name = "Hello World;
+//                        init(new Ast.Statement.Assignment(new Ast.Expression)
+//                        init(new Ast.Statement.Declaration("name", Optional.empty(), Optional.of(
+//                                init(new Ast.Expression.Literal(new BigDecimal("1.0")),ast -> ast.setType(Environment.Type.DECIMAL))
+//                        )), ast -> ast.setVariable(new Environment.Variable("name", "name", Environment.Type.STRING, true, Environment.NIL))),
+//                        "variable = \"Hello World\";"
+//                )
+//        );
+//    }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource
@@ -219,6 +237,22 @@ public class GeneratorTests {
                                 init(new Ast.Expression.Literal(false), ast -> ast.setType(Environment.Type.BOOLEAN))
                         ), ast -> ast.setType(Environment.Type.BOOLEAN)),
                         "true && false"
+                ),
+                Arguments.of("string + char",
+                        // TRUE && FALSE
+                        init(new Ast.Expression.Binary("+",
+                                init(new Ast.Expression.Literal("String"), ast -> ast.setType(Environment.Type.STRING)),
+                                init(new Ast.Expression.Literal("C"), ast -> ast.setType(Environment.Type.CHARACTER))
+                        ), ast -> ast.setType(Environment.Type.STRING)),
+                        "\"String\" + 'C'"
+                ),
+                Arguments.of("^",
+                        // TRUE && FALSE
+                        init(new Ast.Expression.Binary("^",
+                                init(new Ast.Expression.Literal(2), ast -> ast.setType(Environment.Type.INTEGER)),
+                                init(new Ast.Expression.Literal(3), ast -> ast.setType(Environment.Type.INTEGER))
+                        ), ast -> ast.setType(Environment.Type.INTEGER)),
+                        "Math.pow(2, 3)"
                 ),
                 Arguments.of("Concatenation",
                         // "Ben" + 10

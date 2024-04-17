@@ -1,6 +1,8 @@
 package plc.project;
 
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public final class Generator implements Ast.Visitor<Void> {
 
@@ -116,21 +118,35 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Expression ast) {
-
         print(ast.getExpression());
         print(";");
         return null;
-        //throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if(ast.getTypeName().isPresent()){
+            print(Environment.getType(ast.getTypeName().get()).getJvmName());
+            print(" " + ast.getVariable().getJvmName());
+        }
+        else if(ast.getValue().isPresent()){
+           print(ast.getValue().get().getType().getJvmName() + " ");
+           print(ast.getVariable().getJvmName());
+           print(" = ");
+           visit(ast.getValue().get());
+        }
+        print(";");
+        return null;
+        //TODO check more and PLCLISTS?
     }
 
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
-        throw new UnsupportedOperationException(); //TODO
+        visit(ast.getReceiver());
+        print(" = ");
+        visit(ast.getValue());
+        print(";");
+        return null;
     }
 
     @Override
@@ -155,27 +171,75 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
-        throw new UnsupportedOperationException(); //TODO
+        print("return ");
+        visit(ast.getValue());
+        print(";");
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException(); //TODO
+        String type = ast.getType().getJvmName();
+        Object literal;
+        if(type.equals("boolean")){
+            literal = Boolean.valueOf(ast.getLiteral().toString());
+            print(literal);
+        }
+        else if(type.equals("int")){
+            literal = Integer.valueOf(ast.getLiteral().toString());
+            print(literal);
+        }
+        else if(type.equals("double")){
+            //TODO fix decimal precision
+            literal = ast.getLiteral().toString();
+            print(literal);
+        }
+        else if(type.equals("char")){
+            literal = ast.getLiteral().toString();
+            print("'" + literal + "'");
+        }
+        else if(type.equals("String")){
+            literal = ast.getLiteral().toString();
+            print("\"" + literal.toString() + "\"");
+        }
+       return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException(); //TODO
+        print("(");
+        print(ast.getExpression());
+        print(")");
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if(ast.getOperator().equals("^")){
+            print("Math.pow(");
+            visit(ast.getLeft());
+            print(", ");
+            visit(ast.getRight());
+            print(")");
+        }
+        else{
+            visit(ast.getLeft());
+            print(" " + ast.getOperator() + " ");
+            visit(ast.getRight());
+        }
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if(ast.getOffset().isPresent()){
+            print(ast.getVariable().getJvmName());
+            print("[" + ast.getOffset().get() + "]");
+        }
+        else{
+            print(ast.getVariable().getJvmName());
+        }
+        return null;
     }
 
     @Override
