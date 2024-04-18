@@ -92,7 +92,7 @@ public class GeneratorTests {
                 Arguments.of("Initialization",
                         // LET name = 1.0;
                         init(new Ast.Statement.Declaration("name", Optional.empty(), Optional.of(
-                                init(new Ast.Expression.Literal(new BigDecimal("1.0")),ast -> ast.setType(Environment.Type.DECIMAL))
+                                init(new Ast.Expression.Literal(new BigDecimal("1.0")), ast -> ast.setType(Environment.Type.DECIMAL))
                         )), ast -> ast.setVariable(new Environment.Variable("name", "name", Environment.Type.DECIMAL, true, Environment.NIL))),
                         "double name = 1.0;"
                 )
@@ -166,6 +166,51 @@ public class GeneratorTests {
     @MethodSource
     void testSwitchStatement(String test, Ast.Statement.Switch ast, String expected) {
         test(ast, expected);
+    }
+
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testWhileStatement(String test, Ast.Statement.While ast, String expected) {
+        test(ast, expected);
+    }
+    private static Stream<Arguments> testWhileStatement() {
+        return Stream.of(
+                Arguments.of("While",
+//                        WHILE num < 10 DO
+//                            print("What's up party people");
+//                            num = num + 1;
+//                        END
+                        new Ast.Statement.While(
+                                init(new Ast.Expression.Binary("<",
+                                        init(new Ast.Expression.Access(Optional.empty(), "num"), ast -> ast.setVariable(new Environment.Variable("num", "num", Environment.Type.INTEGER, true, Environment.create(5)))),
+                                        init(new Ast.Expression.Literal(10), ast -> ast.setType(Environment.Type.INTEGER))
+                                ), ast -> ast.setType(Environment.Type.INTEGER)),
+                                Arrays.asList(
+                                        new Ast.Statement.Expression(
+                                                init(new Ast.Expression.Function("print", Arrays.asList(init(new Ast.Expression.Literal("What's up party people"), ast -> ast.setType(Environment.Type.STRING)))),
+                                                        ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL))
+                                                )
+                                        ),
+                                        new Ast.Statement.Assignment(
+                                                init(new Ast.Expression.Access(Optional.empty(), "num"), ast -> ast.setVariable(new Environment.Variable("num", "num", Environment.Type.INTEGER, true, Environment.create(5)))),
+                                                init(new Ast.Expression.Binary("+",
+                                                        init(new Ast.Expression.Access(Optional.empty(), "num"), ast -> ast.setVariable(new Environment.Variable("num", "num", Environment.Type.INTEGER, true, Environment.create(5)))),
+                                                        init(new Ast.Expression.Literal(1), ast -> ast.setType(Environment.Type.INTEGER))
+                                                ), ast -> ast.setType(Environment.Type.INTEGER))
+                                        )
+                                )
+
+                        ),
+                        String.join(System.lineSeparator(),
+                        "while (num < 10) {",
+                        "    System.out.println(\"What's up party people\");",
+                        "    num = num + 1;",
+                        "}"
+                        )
+
+                )
+        );
     }
 
     private static Stream<Arguments> testSwitchStatement() {
