@@ -1,9 +1,17 @@
 GeneratorTests (22/31):
-Source (1/2): Multiple Globals & Functions: Unexpected java.util.NoSuchElementException (No value present)
-Global (2/4): Mutable Declaration: Unexpected java.util.NoSuchElementException (No value present) Immutable Initialization: Incorrect result, received double name = 1.0;
-Function (1/2): Multiple Statements: Incorrect result, received func(int x, double y, String z) { System.out.println(x); System.out.println(y); System.out.println(z); }
+Source (1/2):
+    Multiple Globals & Functions: Unexpected java.util.NoSuchElementException (No value present)
+Global (2/4):
+    Mutable Declaration: Unexpected java.util.NoSuchElementException (No value present)
+    Immutable Initialization: Incorrect result, received double name = 1.0;
+Function (1/2):
+    Multiple Statements: Incorrect result, received func(int x, double y, String z) { System.out.println(x); System.out.println(y); System.out.println(z); }
 Statement (6/10):
-    If (0/2): If: Incorrect result, received } Else: Incorrect result, received }
-    While (0/2): Empty Statements: Unexpected java.lang.UnsupportedOperationException (null) Multiple Statements: Unexpected java.lang.UnsupportedOperationException (null)
+    If (0/2):
+        If: Incorrect result, received } Else: Incorrect result, received }
+    While (0/2):
+        Empty Statements: Unexpected java.lang.UnsupportedOperationException (null)
+        Multiple Statements: Unexpected java.lang.UnsupportedOperationException (null)
     Expr (12/13):
-        Access (1/2): List: Incorrect result, received nums[Ast.Expression.Literal{literal=5, type=Type{name='Integer', jvmName='int', scope='Scope{parent=Scope{parent=Scope{parent=null, variables=[], functions=[stringify/0]}, variables=[], functions=[compare/2]}, variables=[], functions=[compare/2]}'}}]
+        Access (1/2):
+            List: Incorrect result, received nums[Ast.Expression.Literal{literal=5, type=Type{name='Integer', jvmName='int', scope='Scope{parent=Scope{parent=Scope{parent=null, variables=[], functions=[stringify/0]}, variables=[], functions=[compare/2]}, variables=[], functions=[compare/2]}'}}]
