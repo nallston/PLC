@@ -94,6 +94,9 @@ public final class Generator implements Ast.Visitor<Void> {
         if(ast.getReturnTypeName().isPresent()){
             print(Environment.getType(ast.getReturnTypeName().get()).getJvmName());
         }
+        else{
+            print("void");
+        }
 
         print(" ", ast.getName(), "(");
         int numParameters = ast.getParameters().size();
