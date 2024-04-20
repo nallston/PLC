@@ -132,6 +132,9 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) {
+        if(!ast.getVariable().getMutable()){
+            print("final ");
+        }
         if(ast.getTypeName().isPresent()){
             print(Environment.getType(ast.getTypeName().get()).getJvmName());
 
@@ -160,8 +163,18 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.If ast) {
-
-//        throw new UnsupportedOperationException(); //TODO
+        print("if (");
+        visit(ast.getCondition());
+        print(") {");
+        newline(++indent);
+        ast.getThenStatements().forEach(this::visit);
+        if(!ast.getElseStatements().isEmpty()){
+            newline(--indent);
+            print("} else {");
+            newline(++indent);
+            ast.getElseStatements().forEach(this::visit);
+        }
+        newline(--indent);
         print("}");
         return null;
     }
@@ -309,7 +322,9 @@ public final class Generator implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.Access ast) {
         if(ast.getOffset().isPresent()){
             print(ast.getVariable().getJvmName());
-            print("[" + ast.getOffset().get() + "]");
+            print("[");
+            visit(ast.getOffset().get());
+            print("]");
         }
         else{
             print(ast.getVariable().getJvmName());
