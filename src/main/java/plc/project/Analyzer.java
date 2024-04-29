@@ -369,6 +369,9 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
+
+//        System.out.println("getting here");
+
         throw new UnsupportedOperationException();  // TODO
     }
 
@@ -378,6 +381,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         else if (target.getName().equals(Environment.Type.COMPARABLE.getName())) {
             if(type.getName().equals(Environment.Type.INTEGER.getName()) || type.getName().equals(Environment.Type.DECIMAL.getName()) || type.getName().equals(Environment.Type.CHARACTER.getName()) || type.getName().equals(Environment.Type.STRING.getName())){
             }
+
             else{
                 throw new RuntimeException("Expected type " + target.getName() + ", recieved " + type.getName() + ".");
             }

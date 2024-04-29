@@ -65,10 +65,12 @@ public final class Parser {
     public Ast.Global parseGlobal() throws ParseException {
         try {
             if (match("LIST")) {
+
                 return parseList();
             } else if (match("VAR")) {
                 return parseMutable();
             } else if (match("VAL")) {
+//                System.out.println("Global search -- immutable found");
                 return parseImmutable();
             } else {
                 throw new ParseException("Invalid Global", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
@@ -86,6 +88,7 @@ public final class Parser {
         try {
             // 'LIST' already matched
             String name;
+            String typeName;
             boolean mutable = true;
             List<Ast.Expression> expressions = new ArrayList<>();
             if (!match(Token.Type.IDENTIFIER)) {
@@ -93,6 +96,15 @@ public final class Parser {
             } else {
                 name = tokens.get(-1).getLiteral();
             }
+            if(!match(":")){
+                throw new ParseException("Invalid List: Missing ':'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+            if(match(Token.Type.IDENTIFIER)){
+                typeName = tokens.get(-1).getLiteral();
+            } else {
+                throw new ParseException("Invalid List: Missing type name", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+
             if (!match("=")) {
                 throw new ParseException("Invalid List: Missing '='", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
@@ -124,7 +136,7 @@ public final class Parser {
             if (!match(";")) {
                 throw new ParseException("semicolon missing", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             } else {
-                return new Ast.Global(name, mutable, Optional.of(new Ast.Expression.PlcList(expressions)));
+                return new Ast.Global(name, typeName, mutable, Optional.of(new Ast.Expression.PlcList(expressions)));
             }
 
 
@@ -144,21 +156,31 @@ public final class Parser {
             boolean mutable = true;
             //expecting that we already parse "VAL"
             String name;
+            String typeName;
             if (match(Token.Type.IDENTIFIER)) {
                 name = tokens.get(-1).getLiteral();
             } else {
                 throw new ParseException("No identifier found", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
 
+            if (!match(":")) {
+                throw new ParseException("Invalid Mutable: Expecting ':'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+            if (match(Token.Type.IDENTIFIER)) {
+                typeName = tokens.get(-1).getLiteral();
+            } else {
+                throw new ParseException("Invalid Mutable: missing type name", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+
             if (match("=")) {
                 Ast.Expression expression = parseExpression();
                 if (!match(";")) {
-                    throw new ParseException("semicolon missing", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                    throw new ParseException("Invalid mutable: semicolon missing (1)", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 } else {
-                    return new Ast.Global(name, mutable, Optional.of(expression));
+                    return new Ast.Global(name, typeName, mutable, Optional.of(expression));
                 }
             } else if (!match(";")) {
-                throw new ParseException("semicolon missing", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                throw new ParseException("Invalid mutable: semicolon missing (2)", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             } else {
                 return new Ast.Global(name, mutable, Optional.empty());
             }
@@ -177,20 +199,37 @@ public final class Parser {
             boolean mutable = false;
             //expecting that we already parse "VAL"
             String name;
+            String typeName;
             if (match(Token.Type.IDENTIFIER)) {
+
                 name = tokens.get(-1).getLiteral();
+//                System.out.println("Found Identifier");
             } else {
                 throw new ParseException("No identifier found", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
 
+            // look for : -> IDENTIFIER Type -> =
+            if(!match(":")){
+                throw new ParseException("Invalid immutable: Missing :", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+            }
+
+            if(match(Token.Type.IDENTIFIER)){
+                typeName = tokens.get(-1).getLiteral();
+            } else {
+                throw new ParseException("Invalid immutable: Missing Type", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+
+            }
+
+
             if (!match("=")) {
+//                System.out.println("Here");
                 throw new ParseException("Invalid immutable", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             } else {
                 Ast.Expression expression = parseExpression();
                 if (!match(";")) {
                     throw new ParseException("semicolon missing", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 } else {
-                    return new Ast.Global(name, mutable, Optional.of(expression));
+                    return new Ast.Global(name, typeName, mutable, Optional.of(expression));
                 }
             }
         } catch (ParseException p) {
@@ -207,6 +246,8 @@ public final class Parser {
         //Has Identifier () 'DO' Block 'END'
         try {
             String name;
+            String retType = "";
+            List<String> paramTypes = new ArrayList<>();
             List<String> parameters = new ArrayList<>();
             if (!match("FUN")) {
                 throw new ParseException("Invalid Funciton: Missing 'FUN' Keyword", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
@@ -224,6 +265,15 @@ public final class Parser {
                 if (!peek(")")) {
                     while (match(Token.Type.IDENTIFIER)) {
                         parameters.add(tokens.get(-1).getLiteral());
+                        if(!match(":")){
+                            throw new ParseException("Invalid Function (Parse parameters): Expecting ':'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                        }
+                        if (match(Token.Type.IDENTIFIER)) {
+                            paramTypes.add(tokens.get(-1).getLiteral());
+                        } else {
+                            throw new ParseException("Invalid Function (Parse parameters): Expecting parameter type", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                        }
+
                         if (!match(",")) {
                             if (!peek(")")) {
                                 throw new ParseException("Invalid Function: Expected ',' between parameters", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
@@ -237,9 +287,21 @@ public final class Parser {
                 }
             }
 
+            // look for : -> IDENTIFIER type
+            if (match(":")) {   // if this does not exist, assume it is a void function
+//                throw new ParseException("Invalid Function: Expecting ':'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                if (match(Token.Type.IDENTIFIER)) {
+                    retType = tokens.get(-1).getLiteral();
+                } else {
+                    throw new ParseException("Invalid Function: Missing return type", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+
+                }
+            }
+
+
             //'DO' Block 'END'
             if (!match("DO")) {
-                throw new ParseException("Invalid Funciton: Invalid DO", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                throw new ParseException("Invalid Function: Invalid DO", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
 
             List<Ast.Statement> statements = parseBlock();
@@ -249,7 +311,9 @@ public final class Parser {
                 throw new ParseException("Invalid Function: Missing 'END' Keyword", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             }
 
-            return new Ast.Function(name, parameters, statements);
+//            List<String> paramTypes;
+
+            return new Ast.Function(name, parameters, paramTypes, Optional.ofNullable(retType), statements);
 
         } catch (ParseException p) {
             throw new ParseException(p.getMessage(), p.getIndex());
@@ -374,6 +438,9 @@ public final class Parser {
         if (match("LET")) {
             if (match(Token.Type.IDENTIFIER)) {
                 String IdentifierString = tokens.get(-1).getLiteral();
+
+                String typeName;
+
                 //Initialization
                 if (match("=")) {
                     try {
@@ -388,9 +455,18 @@ public final class Parser {
                     }
                 }
                 //Definition
-                else if (match(";")) {
-                    return new Ast.Statement.Declaration(IdentifierString, Optional.empty());
+                if(!match(":")){
+                    throw new ParseException("Invalid Declaration: Exception missing ':'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                }
+                if(match(Token.Type.IDENTIFIER)){
+                    typeName = tokens.get(-1).getLiteral();
                 } else {
+                    throw new ParseException("Invalid Declaration: Exception missing type name", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
+                }
+                if (match(";")) {
+                    return new Ast.Statement.Declaration(IdentifierString, Optional.ofNullable(typeName), Optional.empty());
+                } else {
+//                    System.out.println("Throwing Here");
                     throw new ParseException("Exception missing ';'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
 
@@ -772,9 +848,11 @@ public final class Parser {
      */
     private boolean match(Object... patterns) {
 
+//        System.out.println("TEST == " + patterns.);
         boolean peek = peek(patterns);
         if (peek) {
             for (int i = 0; i < patterns.length; i++) {
+//                System.out.println("TEST -- " + tokens.get(i));
                 tokens.advance();
             }
         }
