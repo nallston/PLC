@@ -455,6 +455,11 @@ public final class Parser {
                     }
                 }
                 //Definition
+
+                //TODO Added this to help with declaration problem
+                if (match(";")) {
+                    return new Ast.Statement.Declaration(IdentifierString, Optional.ofNullable(null), Optional.empty());
+                }
                 if(!match(":")){
                     throw new ParseException("Invalid Declaration: Exception missing ':'", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
                 }
