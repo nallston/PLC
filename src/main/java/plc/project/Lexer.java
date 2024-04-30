@@ -35,7 +35,6 @@ public final class Lexer {
         List<Token> TokenList = new ArrayList<>();
 
         while(this.chars.has(0)){
-
             lexEscape();
             if(this.chars.has(0)){
                 TokenList.add(this.lexToken());
@@ -54,7 +53,6 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
-
         Token returnToken;
         if (this.peek("@|[A-Za-z]")) {
             returnToken = lexIdentifier();
@@ -86,55 +84,97 @@ public final class Lexer {
     }
 
     public Token lexNumber() {
-        boolean Decimal = false;
-        boolean Negative = false;
+//handle - bad case
+        //handle int and decimal
+        /*
+        int can be 0 | -? | [1-9] [0-9]*
+        decimal can be -? | ( 0|[1-9] [0-9] )* . [0-9]+
+
+
+        so if its int it can be  -,0-9
+        decimal can be -,0-9 with a . and a 0-9 after
+         */
+
+
+        //get to repeat stage
         if(this.match("-")) {
             if(this.chars.has(0)){
-                Negative = true;
+                if(this.peek("[0-9]")){
+                    if (this.peek("0")) {
+                        //-0 case
+                        if(!this.chars.has(1)){
+                            return chars.emit(Token.Type.OPERATOR);
+                        }
+                        if (this.chars.has(2)) {
+                            if (!this.peek("0", "\\.", "[0-9]")) {
+                                return chars.emit(Token.Type.OPERATOR);
+                            }
+                        }
+
+                    }
+                }
+                else {
+                    return chars.emit(Token.Type.OPERATOR);
+                }
             }
             else{
-                throw new ParseException(this.chars.input, this.chars.index);
+                return chars.emit(Token.Type.OPERATOR);
             }
         }
-        if(this.peek("0")){
-            if(!this.chars.has(1) && !Negative){
-                this.match("0");
+        //handles 0s
+        if(this.match("0")){
+            if(this.chars.has(0)){
+                System.out.println(this.chars.get(0));
+                if(this.peek( "\\.")){
+                    System.out.println(this.chars.get(0));
+                    if(this.chars.has(1)){
+                        if(this.match("\\.", "[0-9]")){
+                            System.out.println(this.chars.get(0));
+                            while (this.chars.has(0)){
+                                if(!this.match("[0-9]")){
+                                    return chars.emit(Token.Type.DECIMAL);
+                                }
+                            }
+                            return chars.emit(Token.Type.DECIMAL);
+                        }
+                        else{
+                            return chars.emit(Token.Type.INTEGER);
+                        }
+                    }
+                    else{
+                        return chars.emit(Token.Type.INTEGER);
+                    }
+                }
+                else{
+                    return chars.emit(Token.Type.INTEGER);
+                }
+            }
+            //0 case
+            else{
                 return chars.emit(Token.Type.INTEGER);
             }
-            else if (this.chars.has(2) && Negative){
-                this.match("0");
-                this.match("\\.","[0-9]");
-                Decimal = true;
-            }
-            else{
-                throw new ParseException(this.chars.input, this.chars.index);
-            }
-        }
-        boolean isnumber = true;
-        while(this.chars.has(0) && isnumber){
-            if(this.peek("\\.")){
-                if(this.peek("\\.") && !Decimal) {
-                    this.match("\\.");
-                    Decimal = true;
-                }
-                if(!this.chars.has(0)){
-                    throw new ParseException(this.chars.input, this.chars.index);
-                }
-            }
-            if(this.peek("[0-9]")){
-                this.match("[0-9]");
-            }
-            else {
-                isnumber = false;
-            }
-        }
-        if (Decimal){
-            return chars.emit(Token.Type.DECIMAL);
-        }
-        else{
-            return chars.emit(Token.Type.INTEGER);
         }
 
+        //handles ints & decimals
+        while(this.chars.has(0)){
+            if(!this.match("[0-9]")){
+                //check for . clause
+                if(this.chars.has(1)){
+                    //confirm decimal
+                    if(this.match("\\.", "[0-9]")){
+                        while (this.chars.has(0)){
+                            if(!this.match("[0-9]")){
+                                return chars.emit(Token.Type.DECIMAL);
+                            }
+                        }
+                        return chars.emit(Token.Type.DECIMAL);
+
+                    }
+                }
+                break;
+            }
+        }
+        return chars.emit(Token.Type.INTEGER);
     }
 
     public Token lexCharacter() {
@@ -143,16 +183,20 @@ public final class Lexer {
         if (chars.has(0)){
 
             // backslash case
-            if(this.peek("\\\\")){
-                chars.advance();
+            if(this.match("\\\\")){
+
                 if(this.chars.has(0)){
-                    if(!this.match("b|n|r|t|'|\"")){
+                    if(!this.match("b|n|r|'|t|\"|\\\\")){
                         throw new ParseException(this.chars.input, this.chars.index);
                     }
                 }
                 else{
                     throw new ParseException(this.chars.input, this.chars.index);
                 }
+            }
+            else if (this.match("'")) {
+                //empty case
+                throw new ParseException(this.chars.input, this.chars.index-1);
             }
             else{
                 //make sure to not match single quote
@@ -170,6 +214,7 @@ public final class Lexer {
                 throw new ParseException(this.chars.input, this.chars.index);
             }
         }
+        
         return chars.emit(Token.Type.CHARACTER);
     }
 
@@ -183,14 +228,18 @@ public final class Lexer {
                 if(peek("\\\\")){
                     chars.advance();
                     if(this.chars.has(0)){
-                        if(!this.match("b|n|r|t|'|\"")){
+                        if(!this.match("b|n|r|t|'|\"|\\\\")){
                             throw new ParseException(this.chars.input, this.chars.index);
                         }
                     }
                     else{
                         throw new ParseException(this.chars.input, this.chars.index);
                     }
-                } else {
+                }
+                else if (this.match("\\n|\\r")) {
+                    throw new ParseException(this.chars.input, this.chars.index);
+                }
+                else {
                     chars.advance();
                 }
             } else {

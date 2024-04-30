@@ -1,0 +1,27 @@
+LexerTests (87/100):
+done Character (9/10): Backslash Escape: Unexpected ParseException ('\\')
+done String (14/15): Special Escapes: Unexpected ParseException ("sq\'dq\"bs\\")
+done Operator (9/10): Hyphen: Unexpected ParseException (-)
+Mixed Token (13/15):
+    done Double Decimal: Incorrect token result, received [DECIMAL=1.@0, OPERATOR=.@2, INTEGER=0@3]
+    done Number Method: Incorrect token result, received [DECIMAL=1.@0, IDENTIFIER=toString@2, OPERATOR=(@10, OPERATOR=)@11]
+ParseException (3/5):
+    done Empty Character: Incorrect index, received 2.
+    done Newline Unterminated String: Expected a ParseException to be thrown
+Examples (9/15):
+    done Simple (9/10): Binary: Incorrect token result, received [IDENTIFIER=x@0, OPERATOR=+@2, INTEGER=1@4, OPERATOR===@6, IDENTIFIER=y@9, OPERATOR=/@11, DECIMAL=2.0@13, INTEGER=-@17, INTEGER=3@19]
+   DONE Program (0/5): FizzBuzz: Unexpected ParseException (LET i = 1; WHILE i != 100 DO IF rem(i, 3) == 0 && rem(i, 5) == 0 DO print("FizzBuzz"); ELSE IF rem(i, 3) == 0 DO print("Fizz"); ELSE IF rem(i, 5) == 0 DO print("Buzz"); ELSE print(i); END END END i = i + 1; END)
+    Actual   :[
+IDENTIFIER=LET@0, IDENTIFIER=i@4, OPERATOR==@6, INTEGER=1@8, OPERATOR=;@9,
+IDENTIFIER=WHILE@11, IDENTIFIER=i@17, OPERATOR=!=@19, INTEGER=100@22, IDENTIFIER=DO@26,
+    IDENTIFIER=IF@33, IDENTIFIER=rem@36, OPERATOR=(@39, IDENTIFIER=i@40, OPERATOR=,@41, INTEGER=3@43, OPERATOR=)@44, OPERATOR===@46, INTEGER=0@49, IDENTIFIER=AND@51, IDENTIFIER=rem@55, OPERATOR=(@58, IDENTIFIER=i@59, OPERATOR=,@60, INTEGER=5@62, OPERATOR=)@63, OPERATOR===@65, INTEGER=0@68,
+        IDENTIFIER=DO@70, IDENTIFIER=print@81, OPERATOR=(@86, STRING="FizzBuzz"@87, OPERATOR=)@97, OPERATOR=;@98,
+    IDENTIFIER=ELSE@104, IDENTIFIER=IF@109, IDENTIFIER=rem@112, OPERATOR=(@115, IDENTIFIER=i@116, OPERATOR=,@117, INTEGER=3@119, OPERATOR=)@120, OPERATOR===@122, INTEGER=0@125, IDENTIFIER=DO@127,
+        IDENTIFIER=print@138, OPERATOR=(@143, STRING="Fizz"@144, OPERATOR=)@150, OPERATOR=;@151,
+    IDENTIFIER=ELSE@157, IDENTIFIER=IF@162, IDENTIFIER=rem@165, OPERATOR=(@168, IDENTIFIER=i@169, OPERATOR=,@170, INTEGER=5@172, OPERATOR=)@173, OPERATOR===@175, INTEGER=0@178, IDENTIFIER=DO@180,
+        IDENTIFIER=print@191, OPERATOR=(@196, STRING="Buzz"@197, OPERATOR=)@203, OPERATOR=;@204,
+    IDENTIFIER=ELSE@210,
+        IDENTIFIER=print@223, OPERATOR=(@228, IDENTIFIER=i@229, OPERATOR=)@230, OPERATOR=;@231,
+    IDENTIFIER=END@237, IDENTIFIER=END@241, IDENTIFIER=END@245,
+    IDENTIFIER=i@253, OPERATOR==@255, IDENTIFIER=i@257, OPERATOR=+@259, INTEGER=1@261, OPERATOR=;@262,
+IDENTIFIER=END@264]
