@@ -27,7 +27,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
+        System.out.println("Here");
+
         if(scope.lookupFunction("main", 0) != null && scope.lookupFunction("main", 0).getReturnType() == Environment.Type.INTEGER){
+
             for(Ast.Global global : ast.getGlobals()){
                 visit(global);
             }
@@ -45,6 +48,9 @@ public final class Analyzer implements Ast.Visitor<Void> {
         if(ast.getValue().isPresent()) {
             Ast.Expression val = ast.getValue().get();
             Environment.Type targetType = Environment.getType(ast.getTypeName());
+
+//            System.out.println(val.toString());
+            System.out.println(targetType);
 
             if(val.getType() == targetType){
                 visit(ast.getValue().get());
@@ -370,7 +376,9 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
 
-//        System.out.println("getting here");
+        System.out.println("getting here");
+
+
 
         throw new UnsupportedOperationException();  // TODO
     }

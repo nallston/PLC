@@ -124,9 +124,9 @@ public final class Lexer {
         //handles 0s
         if(this.match("0")){
             if(this.chars.has(0)){
-                System.out.println(this.chars.get(0));
+//                System.out.println(" --- " + this.chars.get(0));
                 if(this.peek( "\\.")){
-                    System.out.println(this.chars.get(0));
+//                    System.out.println(" === " + this.chars.get(0));
                     if(this.chars.has(1)){
                         if(this.match("\\.", "[0-9]")){
                             System.out.println(this.chars.get(0));

@@ -194,8 +194,14 @@ public class EndToEndGeneratorTests {
 
         Ast ast = function.apply(parser);
 
+
         Analyzer analyzer = new Analyzer(new Scope(null));
+
+//        System.out.println(ast.toString());
+//        System.out.println(analyzer.scope.toString());
+
         analyzer.visit(ast);
+//        System.out.println("Good sign here");
         new Generator(new PrintWriter(writer)).visit(ast);
         Assertions.assertEquals(expected, writer.toString());
     }

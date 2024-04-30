@@ -37,6 +37,7 @@ public final class Parser {
     public Ast.Source parseSource() throws ParseException {
 
         try {
+            System.out.println("Starting here");
             List<Ast.Global> globals = new ArrayList<>();
             List<Ast.Function> functions = new ArrayList<>();
             boolean functionEncountered = false;
@@ -136,7 +137,9 @@ public final class Parser {
             if (!match(";")) {
                 throw new ParseException("semicolon missing", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             } else {
-                return new Ast.Global(name, typeName, mutable, Optional.of(new Ast.Expression.PlcList(expressions)));
+                Ast.Expression.PlcList list = new Ast.Expression.PlcList(expressions);
+                list.setType(Environment.getType(typeName));
+                return new Ast.Global(name, typeName, mutable, Optional.of(list));
             }
 
 

@@ -16,7 +16,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Interpreter(Scope parent) {
         scope = new Scope(parent);
         scope.defineFunction("print", 1, args -> {
-            System.out.println(args.get(0).getValue());
+//            System.out.println("TEST: " + args.get(0).getValue());
             return Environment.NIL;
         });
     }
