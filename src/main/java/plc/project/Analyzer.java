@@ -29,17 +29,16 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Source ast) {
         System.out.println("Here");
 
-        if(scope.lookupFunction("main", 0) != null && scope.lookupFunction("main", 0).getReturnType() == Environment.Type.INTEGER){
-
-            for(Ast.Global global : ast.getGlobals()){
-                visit(global);
-            }
-            for(Ast.Function function : ast.getFunctions()){
-                visit(function);
-            }
-        } else {
+        for(Ast.Global global : ast.getGlobals()){
+            visit(global);
+        }
+        for(Ast.Function function : ast.getFunctions()){
+            visit(function);
+        }
+        if(!(scope.lookupFunction("main", 0) != null && scope.lookupFunction("main", 0).getReturnType() == Environment.Type.INTEGER)) {
             throw new RuntimeException("Stuff went wrong visit(Ast.Source ast)");
         }
+
         return null;
     }
 
