@@ -49,8 +49,99 @@ public class EndToEndGeneratorTests {
                                 "}"
                         )
                 )
+//                ,
+//                Arguments.of( "Multiple Globals & Functions",
+//                        //VAR x: Integer;
+//                        //VAR y: Decimal;
+//                        //VAR z: String;
+//                        //FUN f(): Integer DO RETURN x; END
+//                        //FUN g(): Decimal DO RETURN y; END
+//                        //FUN h(): String DO RETURN z; END
+//                        //FUN main(): Integer DO END
+//                        "VAR x: Integer;\n" +
+//                        "VAR y: Decimal;\n" +
+//                        "VAR z: String;\n"  +
+//
+//
+//                )
         );
     }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testGlobal(String test, String input, String expected){
+        test(input, expected, Parser::parseGlobal);
+    }
+
+    private static Stream<Arguments> testGlobal(){
+        return Stream.of(
+                Arguments.of("Mutable Declaration",
+                        "VAR name: Integer;",
+                        "int name;"
+                ),
+                Arguments.of("List Initialization",
+                        "LIST nums: Integer = [1, 2, 3];",
+                        "int[] nums = {1, 2, 3};"
+                ),
+                Arguments.of("Mutable Initialization",
+                        "VAR name: Decimal = 1.0;",
+                        "double name = 1.0;"
+                ),
+                Arguments.of("Immutable Initialization",
+                        "VAL name: Decimal = 1.0;",
+                        "final double name = 1.0;"
+                )
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testFunction(String test, String input, String expected){
+        test(input, expected, Parser::parseFunction);
+    }
+
+    private static Stream<Arguments> testFunction(){
+        return Stream.of(
+                Arguments.of("Square",
+                        //FUN square(num: Decimal): Decimal DO
+                        //    RETURN num * num;
+                        //END
+                        "FUN square(num: Decimal): Decimal DO\n    RETURN num * num;\nEND",
+
+                        String.join(System.lineSeparator(),
+                                "double square(double num) {",
+                                "    return num * num;",
+                                "}"
+                        )
+
+                ),
+                Arguments.of("Multiple Statements",
+                        //FUN func(x: Integer, y: Decimal, z: String) DO
+                        //    print(x);
+                        //    print(y);
+                        //    print(z);
+                        //END
+                        String.join(System.lineSeparator(),
+                                "FUN func(x: Integer, y: Decimal, z: String) DO",
+                                "    print(x);",
+                                "    print(y);",
+                                "    print(z);",
+                                "END"
+
+                        ),
+                        String.join(System.lineSeparator(),
+                                "void func(int x, double y, String z) {",
+                                "    System.out.println(x);",
+                                "    System.out.println(y);",
+                                "    System.out.println(z);",
+                                "}"
+                        )
+
+
+                )
+        );
+    }
+
 
     @Test
     void testList() {
@@ -80,6 +171,25 @@ public class EndToEndGeneratorTests {
                 )
         );
     }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testWhileStatement(String test, String input, String expected) {
+        test(input, expected, Parser::parseStatement);
+    }
+    private static Stream<Arguments> testWhileStatement() {
+
+        return Stream.of(
+                Arguments.of( "Empty Statements",
+                        "WHILE FALSE DO END",
+                        "while (false) {}"
+                )
+
+
+
+        );
+    }
+
 
     @ParameterizedTest(name = "{0}")
     @MethodSource
@@ -184,9 +294,28 @@ public class EndToEndGeneratorTests {
         );
     }
 
-    /**
-     * Helper function for tests, using a StringWriter as the output stream.
-     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testExpression(String test, String input, String expected){
+        test(input, expected, Parser::parseExpression);
+    }
+
+    private static Stream<Arguments> testExpression() {
+        return Stream.of(
+                Arguments.of( "Group (Binary)",
+                        "(1 + 10)",
+                        "(1 + 10)"
+
+
+                )
+
+        );
+    }
+
+
+        /**
+         * Helper function for tests, using a StringWriter as the output stream.
+         */
     private static <T extends Ast> void test(String input, String expected, Function<Parser, T> function) {
         StringWriter writer = new StringWriter();
         Lexer lexer = new Lexer(input);

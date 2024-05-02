@@ -185,7 +185,7 @@ public final class Parser {
             } else if (!match(";")) {
                 throw new ParseException("Invalid mutable: semicolon missing (2)", tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length());
             } else {
-                return new Ast.Global(name, mutable, Optional.empty());
+                return new Ast.Global(name, typeName, mutable, Optional.empty());
             }
 
         } catch (ParseException p) {

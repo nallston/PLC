@@ -27,7 +27,6 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        System.out.println("Here");
 
         for(Ast.Global global : ast.getGlobals()){
             visit(global);
@@ -48,7 +47,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
             Ast.Expression val = ast.getValue().get();
             Environment.Type targetType = Environment.getType(ast.getTypeName());
 
-//            System.out.println(val.toString());
+            System.out.println(val.toString());
             System.out.println(targetType);
 
             if(val.getType() == targetType){
@@ -71,14 +70,22 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
         Environment.Type retType = Environment.Type.NIL;
         if(ast.getReturnTypeName().isPresent()){
-            retType = Environment.getType(ast.getReturnTypeName().get());
+            if(ast.getReturnTypeName().get().isEmpty()){
+//                retType = Environment.Type.NIL;
+            } else {
+                retType = Environment.getType(ast.getReturnTypeName().get());
+            }
         }
         scope.defineVariable("retType", "retType", retType, true, Environment.NIL);
 
         ast.setFunction(scope.defineFunction(ast.getName(), ast.getName(), parameterTypes, retType, args->Environment.NIL));
         for(int i = 0; i < ast.getParameters().size(); i++){
-            scope.defineVariable(ast.getParameters().get(i), false, Environment.NIL);
+            String name = ast.getParameters().get(i);
+            Environment.Type type = Environment.getType(ast.getParameterTypeNames().get(i));
+            scope.defineVariable(name, name, type, false, Environment.NIL);
         }
+
+
 
         for(Ast.Statement statement : ast.getStatements()){
             scope = new Scope(scope);
@@ -275,10 +282,11 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        if(ast.getExpression() instanceof Ast.Expression.Group){
+        if(ast.getExpression() instanceof Ast.Expression.Binary){
             visit(ast.getExpression());
             ast.setType(ast.getExpression().getType());
         } else {
+//            System.out.println(ast.getClass());
             throw new RuntimeException("Expected Ast.Expression.Binary ==> [visit(Ast.Expression.Group ast)]");
         }
         return null;
@@ -332,6 +340,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
                     ast.setType(Environment.Type.DECIMAL);
                 }
                 else{
+//                    System.out.println("TEST: " + ast.getLeft().getType());
                     throw new RuntimeException("LHS must be Integer or Decimal.");
                 }
                 return null;
@@ -375,11 +384,18 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
 
-        System.out.println("getting here");
+        Environment.Type type =  ast.getType();
 
+        for(Ast.Expression expr : ast.getValues()){
+            visit(expr);    // need to visit the literal to set its type
 
+            if(!expr.getType().equals(type)) {
+                throw new RuntimeException("Cannot assign type " + expr.getType().getName() + " to a list of type " + type.getName());
+            }
+        }
 
-        throw new UnsupportedOperationException();  // TODO
+        return null;
+
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {

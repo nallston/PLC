@@ -36,7 +36,7 @@ public final class Generator implements Ast.Visitor<Void> {
         newline(indent);
         newline(++indent);
 
-        for(Ast.Global global : ast.getGlobals()){
+        for (Ast.Global global : ast.getGlobals()) {
 
             visit(global);
             newline(indent);
@@ -51,7 +51,7 @@ public final class Generator implements Ast.Visitor<Void> {
         newline(--indent);
 
         // other functions
-        for(Ast.Function function: ast.getFunctions()){
+        for (Ast.Function function : ast.getFunctions()) {
             newline(++indent);
             visit(function);
             newline(--indent);
@@ -72,30 +72,40 @@ public final class Generator implements Ast.Visitor<Void> {
     public Void visit(Ast.Global ast) {
 
         print(Environment.getType(ast.getTypeName()).getJvmName());
-        if(ast.getValue().get() instanceof Ast.Expression.PlcList){
-            print("[]");
-        }
-        print(" ", ast.getName());
 
-        if(ast.getValue().isPresent()){
-            print(" = ");
-            print(ast.getValue().get());
+        if (ast.getValue().isPresent()) {
+            if (ast.getValue().get() instanceof Ast.Expression.PlcList) {
+                print("[]");
+            }
+            print(" ", ast.getName());
+
+            if (ast.getValue().isPresent()) {
+                print(" = ");
+                print(ast.getValue().get());
+            }
+        } else {
+            print(" ", ast.getName());
         }
+
+
         print(";");
 
 
         return null;
-//        throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Void visit(Ast.Function ast) {
 
-        if(ast.getReturnTypeName().isPresent()){
-            print(Environment.getType(ast.getReturnTypeName().get()).getJvmName());
-        }
-        else{
-            print("void");
+        if (ast.getReturnTypeName().isPresent()) {
+            if (ast.getReturnTypeName().get().isEmpty()) {
+                print("void");
+
+            } else {
+                print(Environment.getType(ast.getReturnTypeName().get()).getJvmName());
+
+            }
+//            System.out.println(ast.getReturnTypeName().get());
         }
 
         print(" ", ast.getName(), "(");
@@ -103,7 +113,7 @@ public final class Generator implements Ast.Visitor<Void> {
         int numParameterTypes = ast.getParameterTypeNames().size();
 
         if (numParameters == numParameterTypes && numParameters > 0) {
-            for(int i = 0; i < ast.getParameters().size() - 1; i++){
+            for (int i = 0; i < ast.getParameters().size() - 1; i++) {
                 String currentType = Environment.getType(ast.getParameterTypeNames().get(i)).getJvmName();
                 print(currentType, " ", ast.getParameters().get(i), ", ");
             }
@@ -112,9 +122,9 @@ public final class Generator implements Ast.Visitor<Void> {
         }
         print(") ", "{");
 
-        if(!ast.getStatements().isEmpty()){
+        if (!ast.getStatements().isEmpty()) {
             indent++;
-            for(Ast.Statement statement : ast.getStatements()){
+            for (Ast.Statement statement : ast.getStatements()) {
                 newline(indent);
                 print(statement);
             }
@@ -136,18 +146,17 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) {
-        if(!ast.getVariable().getMutable()){
+        if (!ast.getVariable().getMutable()) {
             print("final ");
         }
-        if(ast.getTypeName().isPresent()){
+        if (ast.getTypeName().isPresent()) {
             print(Environment.getType(ast.getTypeName().get()).getJvmName());
 
             print(" " + ast.getVariable().getJvmName());
-        }
-        else if(ast.getValue().isPresent()){
-           print(ast.getValue().get().getType().getJvmName() + " ");
-           print(ast.getVariable().getJvmName());
-           print(" = ");
+        } else if (ast.getValue().isPresent()) {
+            print(ast.getValue().get().getType().getJvmName() + " ");
+            print(ast.getVariable().getJvmName());
+            print(" = ");
 //           visit(ast.getValue().get());
             print(ast.getValue().get());
         }
@@ -172,7 +181,7 @@ public final class Generator implements Ast.Visitor<Void> {
         print(") {");
         newline(++indent);
         ast.getThenStatements().forEach(this::visit);
-        if(!ast.getElseStatements().isEmpty()){
+        if (!ast.getElseStatements().isEmpty()) {
             newline(--indent);
             print("} else {");
             newline(++indent);
@@ -189,9 +198,9 @@ public final class Generator implements Ast.Visitor<Void> {
         print("switch (", ast.getCondition(), ") {");
         newline(++indent);
 
-        for(int i = 0; i < ast.getCases().size(); i++){
+        for (int i = 0; i < ast.getCases().size(); i++) {
 //            print("case ", ast.getCases().get(i).getValue(), );
-            if(ast.getCases().get(i).getValue().isEmpty()){
+            if (ast.getCases().get(i).getValue().isEmpty()) {
                 print("default:", ast.getCases().get(i));
             } else {
                 print("case ", ast.getCases().get(i).getValue().get(), ":", ast.getCases().get(i));
@@ -218,14 +227,14 @@ public final class Generator implements Ast.Visitor<Void> {
 ////            newline(indent);
 //        }
 
-        for(int i = 0; i < ast.getStatements().size(); i++){
+        for (int i = 0; i < ast.getStatements().size(); i++) {
             print(ast.getStatements().get(i));
-            if(i != ast.getStatements().size()-1){
+            if (i != ast.getStatements().size() - 1) {
                 newline(indent);
             }
         }
 
-        if(ast.getValue().isPresent()){
+        if (ast.getValue().isPresent()) {
             newline(indent);
             print("break;");
         } else {
@@ -241,15 +250,15 @@ public final class Generator implements Ast.Visitor<Void> {
     public Void visit(Ast.Statement.While ast) {
 //        throw new UnsupportedOperationException(); //TODO
         print("while (", ast.getCondition(), ") {");
-        if(ast.getStatements().isEmpty()){
-            print(" }");
+        if (ast.getStatements().isEmpty()) {
+            print("}");
             return null;
         } else {
             newline(++indent);
             int size = ast.getStatements().size();
-            for(int i = 0; i < size; i++){
+            for (int i = 0; i < size; i++) {
                 print(ast.getStatements().get(i));
-                if(i < size - 1){
+                if (i < size - 1) {
                     newline(indent);
                 }
             }
@@ -273,28 +282,24 @@ public final class Generator implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.Literal ast) {
         String type = ast.getType().getJvmName();
         Object literal;
-        if(type.equals("boolean")){
+        if (type.equals("boolean")) {
             literal = Boolean.valueOf(ast.getLiteral().toString());
             print(literal);
-        }
-        else if(type.equals("int")){
+        } else if (type.equals("int")) {
             literal = Integer.valueOf(ast.getLiteral().toString());
             print(literal);
-        }
-        else if(type.equals("double")){
+        } else if (type.equals("double")) {
             //TODO fix decimal precision
             literal = ast.getLiteral().toString();
             print(literal);
-        }
-        else if(type.equals("char")){
+        } else if (type.equals("char")) {
             literal = ast.getLiteral().toString();
             print("'" + literal + "'");
-        }
-        else if(type.equals("String")){
+        } else if (type.equals("String")) {
             literal = ast.getLiteral().toString();
             print("\"" + literal.toString() + "\"");
         }
-       return null;
+        return null;
     }
 
     @Override
@@ -307,14 +312,13 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        if(ast.getOperator().equals("^")){
+        if (ast.getOperator().equals("^")) {
             print("Math.pow(");
             visit(ast.getLeft());
             print(", ");
             visit(ast.getRight());
             print(")");
-        }
-        else{
+        } else {
             visit(ast.getLeft());
             print(" " + ast.getOperator() + " ");
             visit(ast.getRight());
@@ -324,13 +328,12 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        if(ast.getOffset().isPresent()){
+        if (ast.getOffset().isPresent()) {
             print(ast.getVariable().getJvmName());
             print("[");
             visit(ast.getOffset().get());
             print("]");
-        }
-        else{
+        } else {
             print(ast.getVariable().getJvmName());
         }
         return null;
@@ -342,8 +345,8 @@ public final class Generator implements Ast.Visitor<Void> {
 
         print(function.getJvmName(), "(");
 
-        if(!ast.getArguments().isEmpty()){
-            for(int i = 0; i < ast.getArguments().size() - 1; i++){
+        if (!ast.getArguments().isEmpty()) {
+            for (int i = 0; i < ast.getArguments().size() - 1; i++) {
                 print(ast.getArguments().get(i), ", ");
             }
             print(ast.getArguments().getLast());
@@ -351,7 +354,6 @@ public final class Generator implements Ast.Visitor<Void> {
 
         print(")");
 //        print(";");
-
 
 
         return null;
@@ -363,8 +365,8 @@ public final class Generator implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.PlcList ast) {
 
         print("{");
-        for(int i = 0; i < ast.getValues().size()-1; i++){
-            print(ast.getValues().get(i), ", " );
+        for (int i = 0; i < ast.getValues().size() - 1; i++) {
+            print(ast.getValues().get(i), ", ");
         }
         print(ast.getValues().getLast(), "}");
 //        throw new UnsupportedOperationException(); //TODO
