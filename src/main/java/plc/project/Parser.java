@@ -730,15 +730,25 @@ public final class Parser {
     public Ast.Expression parsePrimaryExpression() throws ParseException {
         if (tokens.has(0)) {
             if (match("NIL")) {
-                return new Ast.Expression.Literal(null);
+                Ast.Expression.Literal lit = new Ast.Expression.Literal(null);
+                lit.setType(Environment.Type.NIL);
+                return lit;
             } else if (match("TRUE")) {
-                return new Ast.Expression.Literal(Boolean.TRUE);
+                Ast.Expression.Literal lit = new Ast.Expression.Literal(Boolean.TRUE);
+                lit.setType(Environment.Type.BOOLEAN);
+                return lit;
             } else if (match("FALSE")) {
-                return new Ast.Expression.Literal(Boolean.FALSE);
+                Ast.Expression.Literal lit = new Ast.Expression.Literal(Boolean.FALSE);
+                lit.setType(Environment.Type.BOOLEAN);
+                return lit;
             } else if (match(Token.Type.INTEGER)) {
-                return new Ast.Expression.Literal(new BigInteger(tokens.get(-1).getLiteral()));
+                Ast.Expression.Literal lit = new Ast.Expression.Literal(new BigInteger(tokens.get(-1).getLiteral()));
+                lit.setType(Environment.Type.INTEGER);
+                return lit;
             } else if (match(Token.Type.DECIMAL)) {
-                return new Ast.Expression.Literal(new BigDecimal(tokens.get(-1).getLiteral()));
+                Ast.Expression.Literal lit = new Ast.Expression.Literal(new BigDecimal(tokens.get(-1).getLiteral()));
+                lit.setType(Environment.Type.DECIMAL);
+                return lit;
             } else if (match(Token.Type.CHARACTER)) {
                 String found = tokens.get(-1).getLiteral();
                 return new Ast.Expression.Literal(found.charAt(1));
@@ -751,7 +761,9 @@ public final class Parser {
                     found = found.replace("\\b", "\b").replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t").replace("\\'", "'").replace("\\\"", "\"").replace("\\\\", "\\");
                 }
                 // TODO: need to implement specific whitespace properties
-                return new Ast.Expression.Literal(found);
+                Ast.Expression.Literal lit = new Ast.Expression.Literal(found);
+                lit.setType(Environment.Type.STRING);
+                return lit;
             } else if (match("(")) {
                 Ast.Expression grouped = parseExpression();
                 if (!match(")")) {

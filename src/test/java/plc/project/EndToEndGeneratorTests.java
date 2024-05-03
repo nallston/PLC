@@ -89,7 +89,7 @@ public class EndToEndGeneratorTests {
                 ),
                 Arguments.of("Immutable Initialization",
                         "VAL name: Decimal = 1.0;",
-                        "final double name = 1.0;"
+                        "double name = 1.0;"
                 )
         );
     }
