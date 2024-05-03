@@ -1,23 +1,13 @@
-
-Peter Dobbins at Mon Feb 19, 2024 3:35amat Mon Feb 19, 2024 3:35am
-ParserTests (49/53):
-    Expression (37/41):
-        Literal (7/8):
-            Char Escapes (0/1): Char Escape '\b':
-                Incorrect result, received Ast.Expression.Literal{literal=\} Char Escape '\n':
-                Incorrect result, received Ast.Expression.Literal{literal=\} Char Escape '\r':
-                Incorrect result, received Ast.Expression.Literal{literal=\} Char Escape '\t':
-                Incorrect result, received Ast.Expression.Literal{literal=\} Char Escape '\'':
-                Incorrect result, received Ast.Expression.Literal{literal=\} Char Escape '\"':
-                Incorrect result, received Ast.Expression.Literal{literal=\}
-        Binary (5/8):
-            Basic (3/4):
-                Multiplicative (0/1): ^:
-                    Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
-                Multiple Operators (2/2):
-                Multiplicative (1/1): ^: Incorrect result, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
-            Missing Operand (0/2):
-                Logical (0/1): And: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 Or: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2
-                Comparison (0/1): <: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 >: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 ==: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 !=: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2
-                Additive (0/1): +: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 -: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2
-                Multiplicative (0/1): *: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 /: Unexpected java.lang.IndexOutOfBoundsException: Index 2 out of bounds for length 2 ^: Expected a ParseException to be thrown, received Ast.Expression.Access{offset=Optional.empty, name='expr1'}
+ParserTests [After Types] (8/16):
+Source (2/5):
+    List - Singular: Unexpected java.lang.RuntimeException: Unknown type Type.
+    Function: Incorrect result, received Ast.Source{globals=[], functions=[Ast.Function{name='name', parameters=[], parameterTypeNames=[], returnTypeName='Optional[]', statements=[Ast.Statement.Expression{expression=Ast.Expression.Access{offset=Optional.empty, name='stmt', variable=null}}], function=null}]}
+    Global Function: Incorrect result, received Ast.Source{globals=[Ast.Global{name='name', typeName=Type, mutable=false, value=Optional[Ast.Expression.Access{offset=Optional.empty, name='expr', variable=null}], variable=null}], functions=[Ast.Function{name='name', parameters=[], parameterTypeNames=[], returnTypeName='Optional[]', statements=[Ast.Statement.Expression{expression=Ast.Expression.Access{offset=Optional.empty, name='stmt', variable=null}}], function=null}]}
+Global (2/4):
+    Definition: Incorrect result, received Ast.Global{name='name', typeName=Any, mutable=true, value=Optional.empty, variable=null}
+    List - Multiples: Unexpected java.lang.RuntimeException: Unknown type Type.
+Function Definition (2/4):
+    Baseline Function: Incorrect result, received Ast.Function{name='name', parameters=[], parameterTypeNames=[], returnTypeName='Optional[]', statements=[Ast.Statement.Expression{expression=Ast.Expression.Access{offset=Optional.empty, name='stmt', variable=null}}], function=null}
+    Argument Type: Incorrect result, received Ast.Function{name='name', parameters=[arg], parameterTypeNames=[Type], returnTypeName='Optional[]', statements=[Ast.Statement.Expression{expression=Ast.Expression.Access{offset=Optional.empty, name='stmt', variable=null}}], function=null}
+Statement (2/3):
+    Declaration (2/3): Type Annotation: Unexpected ParseException (Exception missing ';')

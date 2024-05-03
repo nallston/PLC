@@ -34,6 +34,26 @@ final class ParserModifiedTests {
                         Arrays.asList(),
                         new Ast.Source(Arrays.asList(), Arrays.asList())
                 ),
+                /*
+                Arguments.of("Global - List - Singular",
+                        Arrays.asList(
+                                //LIST List: Type = [expr];;
+                                new Token(Token.Type.IDENTIFIER, "LIST", 0),
+                                new Token(Token.Type.IDENTIFIER, "List", 5),
+                                new Token(Token.Type.OPERATOR, ":", 10),
+                                new Token(Token.Type.IDENTIFIER, "Type", 12),
+                                new Token(Token.Type.OPERATOR, "=", 16),
+                                new Token(Token.Type.OPERATOR, "[", 18),
+                                new Token(Token.Type.IDENTIFIER, "expr", 19),
+                                new Token(Token.Type.OPERATOR, "]", 20),
+                                new Token(Token.Type.OPERATOR, ";", 21)
+                        ),
+                        new Ast.Source(
+                                Arrays.asList(new Ast.Global("name", "Type", false, Optional.of(new Ast.Expression.PlcList(Arrays.asList(new Ast.Expression.Access(Optional.empty(), "expr"))), "expr")))),
+                                Arrays.asList()
+                        )
+                ),
+                */
                 Arguments.of("Global - Immutable",
                         Arrays.asList(
                                 //LET name: Type = expr;

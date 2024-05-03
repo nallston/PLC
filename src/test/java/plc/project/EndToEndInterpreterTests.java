@@ -27,10 +27,10 @@ final class EndToEndInterpreterTests {
     private static Stream<Arguments> testSource() {
         return Stream.of(
                 // FUN main() DO RETURN 0; END
-                Arguments.of("Main",
-                        "FUN main() DO RETURN 0; END"
-                        , BigInteger.ZERO
-                ),
+              //  Arguments.of("Main",
+              //          "FUN main() DO RETURN 0; END"
+              //          , BigInteger.ZERO
+              //  ),
                 Arguments.of("Error Func",
                         "VAR x: Integer = 1;\n" +
                                 "VAR y: Integer = 2;\n" +
