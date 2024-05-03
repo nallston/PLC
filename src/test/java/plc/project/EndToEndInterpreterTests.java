@@ -31,6 +31,19 @@ final class EndToEndInterpreterTests {
                         "FUN main() DO RETURN 0; END"
                         , BigInteger.ZERO
                 ),
+                Arguments.of("Error Func",
+                        "VAR x: Integer = 1;\n" +
+                                "VAR y: Integer = 2;\n" +
+                                "VAR z: Integer = 3;\n" +
+                                "FUN f(z: Integer): Integer DO\n" +
+                                "    RETURN x + y + z;\n" +
+                                "END\n" +
+                                "FUN main(): Integer DO\n" +
+                                "    LET y = 4;\n" +
+                                "    RETURN f(5);\n" +
+                                "END"
+                        , BigInteger.valueOf(8)
+                ),
                 // VAR x: Integer = 1; VAR y: Integer = 10; FUN main() DO x + y; END
                 Arguments.of("Globals & No Return",
                         "VAR x: Integer = 1; VAR y: Integer = 10; FUN main() DO x + y; END",
